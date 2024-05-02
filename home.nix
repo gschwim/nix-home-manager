@@ -145,8 +145,10 @@ in
       autoload -U down-line-or-beginning-search
       zle -N up-line-or-beginning-search
       zle -N down-line-or-beginning-search
-      bindkey "^[[A" up-line-or-beginning-search # Up
-      bindkey "^[[B" down-line-or-beginning-search # Down
+      bindkey "^[OA" up-line-or-beginning-search # Up
+      bindkey "^[OB" down-line-or-beginning-search # Down
+      # bindkey "^[[A" up-line-or-beginning-search # Up
+      # bindkey "^[[B" down-line-or-beginning-search # Down
     '';
 
   };
@@ -163,7 +165,12 @@ in
   };
 
   # bat
-  programs.bat.enable = true;
+  programs.bat = {
+    enable = true;
+    config = {
+      theme = "OneHalfDark";
+    };
+  };
 
   # ripgrep
   programs.ripgrep.enable = true;
