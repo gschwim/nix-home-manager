@@ -51,7 +51,8 @@ in
     # # "Hello, world!" when run.
     # pkgs.hello
     pkgs.dust
-    pkgs.bat
+    # pkgs.bat
+    # pkgs.stable.rust
     
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -112,8 +113,27 @@ in
   };
   programs.zsh =  {
     enable = true;
+    dotDir = ".config/zsh";
     autosuggestion.enable = true;
     shellAliases = shellAliases;
+    history = {
+      extended = true;
+      share = true;
+
+    };
+    plugins = [
+      # fzf-git: https://github.com/junegunn/fzf-git.sh
+      {
+        name = "fzf-git";
+        file = "fzf-git.sh";
+        src = pkgs.fetchFromGitHub {
+          owner = "junegunn";
+          repo = "fzf-git.sh";
+          rev = "main";
+          sha256 = "wSBcmshT/Jbk5UzGMOhCq+Kj2rzxLUPcqdf9SChHkps=";
+        };
+      }
+    ];
     initExtra = ''
       # added by Nix installer
       if [ -e /home/schwim2/.nix-profile/etc/profile.d/nix.sh ]; then
@@ -128,11 +148,6 @@ in
       bindkey "^[[A" up-line-or-beginning-search # Up
       bindkey "^[[B" down-line-or-beginning-search # Down
     '';
-    history = {
-      extended = true;
-      share = true;
-
-    };
 
   };
 
@@ -147,6 +162,9 @@ in
     ];
   };
 
+  # bat
+  programs.bat.enable = true;
+
   # ripgrep
   programs.ripgrep.enable = true;
 
@@ -159,7 +177,11 @@ in
     enableZshIntegration = true;
   };
   
-
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+    defaultCommand = "fd --hidden --strip-cwd-prefix --exclude .git";
+  }; 
 
 
 }
