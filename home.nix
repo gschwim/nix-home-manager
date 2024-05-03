@@ -243,6 +243,7 @@ in
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     # pkgs.hello
+    pkgs.gcc_multi
     pkgs.dust
     pkgs.fd
     pkgs.tlrc
@@ -348,6 +349,17 @@ in
     '';
 
 
+  };
+
+  # tmux
+  programs.tmux = {
+    enable = true;
+    terminal = "tmux-256color";
+    historyLimit = 100000;
+    plugins = with pkgs; [
+      tmuxPlugins.cpu
+      tmuxPlugins.onedark-theme
+    ];
   };
 
   #eza
