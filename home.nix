@@ -344,7 +344,9 @@ in
       bindkey "^[OB" down-line-or-beginning-search # Down
       # bindkey "^[[A" up-line-or-beginning-search # Up
       # bindkey "^[[B" down-line-or-beginning-search # Down
+
     '';
+
 
   };
 
@@ -377,6 +379,20 @@ in
     enable = true;
     enableZshIntegration = true;
     defaultCommand = "fd --hidden --strip-cwd-prefix --exclude .git";
+    defaultOptions = [
+      "--color=fg:\"#CBE0F0\",bg:\"#011628\",hl:\"#B388FF\",fg+:\"#CBE0F0\",bg+:\"#143652\",hl+:\"#B388FF\",info:\"#06BCE4\",prompt:\"#2CF9ED\",pointer:\"#2CF9ED\",marker:\"#2CF9ED\",spinner:\"#2CF9ED\",header:\"#2CF9ED\""
+    ];
+
+    fileWidgetCommand = "fd --hidden --strip-cwd-prefix --exclude .git";
+
+    fileWidgetOptions = [
+      "--preview"
+      "'if [ -d {} ]; then eza --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi'"
+    ];
+    changeDirWidgetOptions = [
+      "--preview eza --tree --color=always {} | head -200"
+    ];
+
   }; 
 
   # pyenv
