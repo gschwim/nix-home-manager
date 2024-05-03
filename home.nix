@@ -360,7 +360,9 @@ in
       tmuxPlugins.cpu
       tmuxPlugins.onedark-theme
     ];
-  };
+    # vim doesn't like the default of 500
+    escapeTime = 10;
+     };
 
   #eza
   programs.eza = {
