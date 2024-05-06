@@ -242,8 +242,34 @@ in
   home.packages = [
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
+
+    # presumably for python. It builds, but so many things are missing. Sad.
     # pkgs.hello
-    pkgs.gcc_multi
+    # pkgs.gcc_multi
+    # pkgs.gnumake
+    # pkgs.gdb
+    # pkgs.lcov
+    # pkgs.unzip
+    # pkgs.pkg-config
+    # pkgs.zlib
+    # pkgs.libffi
+    # # pkgs.libbz2
+    # pkgs.gdbm
+    # #pkgs.gdbm-compat
+    # pkgs.lzlib
+    # pkgs.ncurses5
+    # pkgs.readline
+    # pkgs.sqlite
+    # pkgs.libressl
+    # # pkgs.lzma-dev
+    # pkgs.tk
+    # pkgs.stduuid
+    # pkgs.zlib
+    # pkgs.python39
+    # pkgs.python312
+
+
+
     pkgs.dust
     pkgs.fd
     pkgs.tlrc
@@ -345,7 +371,24 @@ in
       bindkey "^[OB" down-line-or-beginning-search # Down
       # bindkey "^[[A" up-line-or-beginning-search # Up
       # bindkey "^[[B" down-line-or-beginning-search # Down
+      
+      # pyenv activation
+      if [ -e .pyenv/bin/pyenv ]; then
+        export PYENV_ROOT="$HOME/.pyenv"
+        [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        print "pyenv initialized!"
+      else
+        print "pyenv init missing!"
+      fi
 
+      # local overrides
+      if [ -e ~/.config/zsh/zshrc_local ]; then
+        source ~/.config/zsh/zshrc_local
+      else
+        print "zshrc_local does not exist. Created in ~/.config/zshrc to use."
+        echo "# local overrides go here..." > ~/.config/zsh/zshrc_local
+      fi
     '';
 
 
@@ -354,14 +397,54 @@ in
   # tmux
   programs.tmux = {
     enable = true;
-    terminal = "tmux-256color";
+    terminal = "screen-256color";
+    # terminal = "tmux-256color";
     historyLimit = 100000;
     plugins = with pkgs; [
       tmuxPlugins.cpu
       tmuxPlugins.onedark-theme
+      tmuxPlugins.vim-tmux-navigator
+      {
+        plugin = tmuxPlugins.resurrect;
+        extraConfig = ''
+          set -g @resurrect-capture-pane-contents 'on'
+        '';
+      }
+      {
+        plugin = tmuxPlugins.continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+        '';
+      }
     ];
+    # change from the default prefix
+    prefix = "C-a";
+
+    # vi keybindings, not emacs
+    keyMode = "vi";
+
     # vim doesn't like the default of 500
     escapeTime = 10;
+
+    # general extraConfig
+    extraConfig = "
+      # window split rebinds
+      unbind %
+      bind | split-window -h 
+      unbind '\"'
+      bind - split-window -v
+
+      # vi keys to resize panes, e.g. prefix-j, etc...
+      bind j resize-pane -D 5
+      bind k resize-pane -U 5
+      bind l resize-pane -R 5
+      bind h resize-pane -L 5
+      bind -r m resize-pane -Z
+
+      # vi-mode select and copy
+      bind-key -T copy-mode-vi 'v' send -X begin-selection # start selecting text with 'v'
+      bind-key -T copy-mode-vi 'y' send -X copy-selection # copy text with 'y'
+      ";
      };
 
   #eza
@@ -409,11 +492,11 @@ in
 
   }; 
 
-  # pyenv
-  programs.pyenv = {
-    enable = true;
-    enableZshIntegration = true;
-  };
+  # # pyenv - not sure this is acceptable to me
+  # programs.pyenv = {
+  #   enable = true;
+  #   enableZshIntegration = true;
+  # };
   
   programs.git = {
     enable = true;
