@@ -140,7 +140,7 @@ fi
 print "Beginning the install..."
 
 # clean out old things
-clean_old
+# clean_old
 
 if [[ $step == 1 ]]; then
 	keep_going

@@ -61,16 +61,17 @@ install_nix() {
 
 	 . $HOME/.nix-profile/etc/profile.d/nix.sh
 
+}
+
+configure_home_manager() {
+	# install the home-manager config
 	print "Installing home-manager..."
 	echo installing home-manager
 	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 	nix-channel --update
 
 	nix-shell '<home-manager>' -A install
-}
 
-configure_home_manager() {
-	# install the home-manager config
 	print "Configuring home-manager"
 	if [ ! -e ~/src/nix-home-manager ]; then
 		mkdir -p ~/src/nix-home-manager
