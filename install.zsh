@@ -2,6 +2,7 @@
 
 clean_old() {
 	# cleaning everything that is not a home-manager install
+	print "Cleaning old config things..."
 	if [[ -e ~/.oh-my-zsh ]]; then
 		rm -rf ~/.oh-my-zsh
 	fi
@@ -30,18 +31,21 @@ prepare_or_update_osx() {
 	print "Nix has taken over. No brew packages to install."
 }
 
-set_or_verify_shell() {
+set_shell() {
 	if [[ $(echo $SHELL | rev | cut -d "/" -f 1 | rev) != 'zsh' ]]; then
 		echo "Updating shell..."
 		sudo chsh -s `which zsh` $USER
+	else
+		echo "Shell already set properly."
 	fi
 }
 
 install_nix() {
 	# install nix and home-manager
-	echo Installing nix...
+	print "Installing nix..."
 	sh <(curl -L https://nixos.org/nix/install) --no-daemon
 
+	print "Installing home-manager..."
 	echo installing home-manager
 	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 	nix-channel --update
@@ -51,23 +55,29 @@ install_nix() {
 
 configure_home_manager() {
 	# install the home-manager config
-	mkdir -p ~/src
-	cd src
-	git clone https://github.com/gschwim/nix-home-manager
-	cd ~/.config/home-manager
-	rm -rf home.nix
-	ln -s ~/src/nix-home-manager/home.nix home.nix
+	print "Configuring home-manager"
+	if [ ! -e ~/src/nix-home-manager ]; then
+		mkdir -p ~/src/nix-home-manager
+		git clone https://github.com/gschwim/nix-home-manager ~/src/nix-home-manager
+		if [ -e ~/.config/home-manager/home.nix ]
+			rm -rf ~/.config/home-manager/home.nix
+			ln -s ~/src/nix-home-manager/home.nix ~/.config/home-manager/home.nix
+		fi
+	else
+		print "Found existing config. Updating..."
+		zsh -c "cd ~/src/nix-home-manager && git pull && exit"
+	fi
 }
 
 install_or_update_dotfiles_nvim() {
 	if [ ! -e ~/.config/nvim/.git ]; then
-		echo "Clear any old nvim stuff..."
+		print "Clear any old nvim stuff..."
 		rm -rf ~/.config/nvim
 		rm -rf ~/.local/share/nvim
-		echo "Install nvim config..."
+		print "Install nvim config..."
 		git clone https://github.com/gschwim/dotfiles.nvim.git ~/.config/nvim/
 	else
-		echo "Updating nvim config..."
+		print "Updating nvim config..."
 		zsh -c "cd ~/.config/nvim && git pull && exit"
 	fi
 
@@ -75,12 +85,12 @@ install_or_update_dotfiles_nvim() {
 
 install_or_update_pyenv() {
 	if [[ -e ~/.pyenv ]]; then 
-		echo "pyenv already installed. Updating..."
+		print "pyenv already installed. Updating..."
 		zsh -c "cd ~/.pyenv && git pull && \
 			cd ~/.pyenv/plugins/pyenv-virtualenv && git pull && \
 			exit"
 	else
-		echo "Installing pyenv..."
+		print "Installing pyenv..."
 		git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 		git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
 	fi
@@ -89,11 +99,81 @@ install_or_update_pyenv() {
 install_wezterm_config() {
 	print "Installing wezterm config"
 	print "NOTE: Wezterm install will need to be manually"
-	cp wezterm.lua ~/.wezterm.lua
+	cp ~/src/nix-home-manager/wezterm.lua ~/.wezterm.lua
+}
+
+keep_going() {
+	vared -p "Press any key to continue..." -c blah
 }
 
 
+###### run the workflow
 
+export step=1
 
-print "Used the source!"
+print "WARNING: This will render any existing environment destroyed!"
+vared -p "Install the environment? (Y/y to proceed): " -c proceed
+
+if [[ ! ${proceed:l} =~ "y" ]]; then
+	print "Quitting install." 
+	return
+fi
+
+# prepare and/or update the osl
+print "Beginning the install..."
+
+# clean out old things
+clean_old
+
+if [[ $step == 1 ]]; then
+	keep_going
+fi
+
+# prepare and/or update the os
+if [[ `uname` == "Linux" ]]; then
+	prepare_or_update_debs
+elif [[ `uname` == "Darwin" ]]; then
+	prepare_or_update_osx
+else
+	print "Unknown OS. Stopping!"
+	return
+fi
+
+# set the shell to zsh
+set_shell
+
+if [[ $step == 1 ]]; then
+	keep_going
+fi
+
+# install nix and home-manager
+install_nix
+
+if [[ $step == 1 ]]; then
+	keep_going
+fi
+
+# configure home-manager
+configure_home_manager
+
+if [[ $step == 1 ]]; then
+	keep_going
+fi
+
+# install neovim config
+install_or_update_dotfiles_nvim
+
+if [[ $step == 1 ]]; then
+	keep_going
+fi
+
+# install pyenv
+install_or_update_pyenv
+
+if [[ $step == 1 ]]; then
+	keep_going
+fi
+
+# install wezterm config
+install_wezterm_config
 
