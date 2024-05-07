@@ -59,7 +59,7 @@ configure_home_manager() {
 	if [ ! -e ~/src/nix-home-manager ]; then
 		mkdir -p ~/src/nix-home-manager
 		git clone https://github.com/gschwim/nix-home-manager ~/src/nix-home-manager
-		if [ -e ~/.config/home-manager/home.nix ]
+		if [ -e ~/.config/home-manager/home.nix ]; then
 			rm -rf ~/.config/home-manager/home.nix
 			ln -s ~/src/nix-home-manager/home.nix ~/.config/home-manager/home.nix
 		fi
