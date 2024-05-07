@@ -275,6 +275,9 @@ in
     pkgs.dust
     pkgs.fd
     pkgs.tlrc
+    pkgs.wget
+    pkgs.curl
+
     # pkgs.bat
     # pkgs.stable.rust
     
