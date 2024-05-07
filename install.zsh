@@ -3,6 +3,9 @@
 clean_old() {
 	# cleaning everything that is not a home-manager install
 	print "Cleaning old config things..."
+
+	rm -rf ~/.nix*
+	
 	if [[ -e ~/.oh-my-zsh ]]; then
 		rm -rf ~/.oh-my-zsh
 	fi
@@ -43,8 +46,18 @@ set_shell() {
 
 install_nix() {
 	# install nix and home-manager
+	if command -v nix-store &> /dev/null; then
+		print "nix already installed. Skipping"
+		return
+	fi
+
+	if [[ `uname` == "Darwin" ]]; then
+		print "TODO - installer for OSX"
+		return
+	fi
+
 	print "Installing nix..."
-	sh <(curl -L https://nixos.org/nix/install) --no-daemon
+	sh <(curl -L https://nixos.org/nix/install) --daemon
 
 	 . $HOME/.nix-profile/etc/profile.d/nix.sh
 
@@ -113,7 +126,7 @@ keep_going() {
 
 ###### run the workflow
 
-export step=1
+export step=0
 
 print "WARNING: This will render any existing environment destroyed!"
 vared -p "Install the environment? (Y/y to proceed): " -c proceed
