@@ -11,7 +11,6 @@ clean_old() {
 		rm ~/.zshrc
 		rm ~/.zprofile
 		rm ~/.zenv
-		touch ~/.zshrc
 	fi
 }
 
@@ -46,8 +45,6 @@ install_nix() {
 	print "Installing nix..."
 	sh <(curl -L https://nixos.org/nix/install) --no-daemon
 
-	 . $HOME/.nix-profile/etc/profile.d/nix.sh
-
 	print "Installing home-manager..."
 	echo installing home-manager
 	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
@@ -62,15 +59,14 @@ configure_home_manager() {
 	if [ ! -e ~/src/nix-home-manager ]; then
 		mkdir -p ~/src/nix-home-manager
 		git clone https://github.com/gschwim/nix-home-manager ~/src/nix-home-manager
+		if [ -e ~/.config/home-manager/home.nix ]; then
+			rm -rf ~/.config/home-manager/home.nix
+			ln -s ~/src/nix-home-manager/home.nix ~/.config/home-manager/home.nix
+		fi
 	else
 		print "Found existing config. Updating..."
 		zsh -c "cd ~/src/nix-home-manager && git pull && exit"
 	fi
-
-	rm -rf ~/.config/home-manager
-	ln -s ~/src/nix-home-manager ~/.config/home-manager
-
-	home-manager switch
 }
 
 install_or_update_dotfiles_nvim() {
