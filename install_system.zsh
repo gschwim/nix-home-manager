@@ -21,7 +21,7 @@ clean_old() {
 prepare_or_update_debs() {
 	print "Updating OS with the necessaries..."
 	sudo apt update
-	sudo apt install --yes zsh wget ripgrep bat git curl fuse \
+	sudo apt install --yes fuse \
 		build-essential gcc make unzip \
 		gdb lcov pkg-config \
 		libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev liblzma-dev \
