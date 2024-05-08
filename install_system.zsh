@@ -57,7 +57,7 @@ install_nix() {
 	fi
 
 	print "Installing nix..."
-	sh <(curl -L https://nixos.org/nix/install) --daemon
+	sh <(curl -L https://nixos.org/nix/install) --daemon --yes
 
 	 . $HOME/.nix-profile/etc/profile.d/nix.sh
 
