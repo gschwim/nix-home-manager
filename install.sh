@@ -3,14 +3,15 @@
 
 export step=0
 
-print "WARNING: This will render any existing environment destroyed!"
+textout "$RED$RED_UL" "WARNING: This will render any existing environment destroyed!"
 if ! ui_confirm "Install the environment? (Y/y to proceed): "; then
-	echo "OK, stopping!"
+	echo "$RED$RED_UL" "Quitting install!"
+	return 0
 
-
+fi
 
 
 # prepare and/or update the osl
-print "Beginning the install..."
+echo "$BLUE" "Beginning the install..."
 
 

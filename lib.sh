@@ -7,7 +7,7 @@ readonly BLUE_UL='\033[4;34m'
 readonly GREEN='\033[32m'
 readonly GREEN_UL='\033[4;32m'
 readonly RED='\033[31m'
-
+readonly RED_UL='\033[4;31m'
 
 clean_old() {
 	# cleaning everything that is not a home-manager install
