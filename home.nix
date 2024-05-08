@@ -341,7 +341,8 @@ in
   programs.zsh =  {
     enable = true;
     dotDir = ".config/zsh";
-    autosuggestion.enable = true;
+    autosuggestion.enable = false;
+    completionInit = "autoload -U compinit && compinit -u";
     shellAliases = shellAliases;
     history = {
       extended = true;
