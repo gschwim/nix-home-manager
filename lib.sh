@@ -92,7 +92,7 @@ configure_home_manager() {
 	rm -rf ~/.config/home-manager
 	ln -s ~/src/nix-home-manager ~/.config/home-manager
 
-	home-manager switch
+	zsh -c "source /etc/zshrc && home-manager switch"
 }
 
 install_or_update_dotfiles_nvim() {
