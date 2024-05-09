@@ -15,11 +15,11 @@ clean_old() {
 
 	rm -rf ~/.nix*
 	
-	if [[ -e ~/.oh-my-zsh ]]; then
+	if [ -e ~/.oh-my-zsh ]; then
 		rm -rf ~/.oh-my-zsh
 	fi
 
-	if [[ -e ~/.zshrc ]]; then
+	if [ -e ~/.zshrc ]; then
 		rm ~/.zshrc
 		rm ~/.zprofile
 		rm ~/.zenv
@@ -45,7 +45,7 @@ prepare_or_update_osx() {
 }
 
 set_shell() {
-	if [[ $(echo $SHELL | rev | cut -d "/" -f 1 | rev) != 'zsh' ]]; then
+	if [ $(echo $SHELL | rev | cut -d "/" -f 1 | rev) != 'zsh' ]; then
 		echo "Updating shell..."
 		sudo chsh -s `which zsh` $USER
 	else
@@ -60,13 +60,13 @@ install_nix() {
 		return
 	fi
 
-	if [[ `uname` == "Darwin" ]]; then
+	if [ "$(uname)" = "Darwin" ]; then
 		echo "TODO - installer for OSX"
 		return
 	fi
 
 	echo "Installing nix..."
-	sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+	sh < curl -L https://nixos.org/nix/install --daemon --yes
 
 	 # . $HOME/.nix-profile/etc/profile.d/nix.sh
 
@@ -110,7 +110,7 @@ install_or_update_dotfiles_nvim() {
 }
 
 install_or_update_pyenv() {
-	if [[ -e ~/.pyenv ]]; then 
+	if [ -e ~/.pyenv ]; then 
 		echo "pyenv already installed. Updating..."
 		zsh -c "cd ~/.pyenv && git pull && \
 			cd ~/.pyenv/plugins/pyenv-virtualenv && git pull && \
@@ -165,14 +165,14 @@ install_system() {
 	# clean out old things
 	clean_old
 
-	if [[ $step == 1 ]]; then
+	if [ $step -eq 1 ]; then
 		keep_going
 	fi
 
 	# prepare and/or update the os
-	if [[ `uname` == "Linux" ]]; then
+	if [ "$(uname)" = "Linux" ]; then
 		prepare_or_update_debs
-	elif [[ `uname` == "Darwin" ]]; then
+	elif [ "$(uname)" = "Darwin" ]; then
 		prepare_or_update_osx
 	else
 		echo "Unknown OS. Stopping!"
@@ -182,14 +182,14 @@ install_system() {
 	# set the shell to zsh
 	set_shell
 
-	if [[ $step == 1 ]]; then
+	if [ $step -eq 1 ]; then
 		keep_going
 	fi
 
 	# install nix and home-manager
 	install_nix
 
-	if [[ $step == 1 ]]; then
+	if [ $step -eq 1 ]; then
 		keep_going
 	fi
 }
@@ -198,21 +198,21 @@ install_user() {
 	# configure home-manager
 	configure_home_manager
 
-	if [[ $step == 1 ]]; then
+	if [ $step -eq 1 ]; then
 		keep_going
 	fi
 
 	# install neovim config
 	install_or_update_dotfiles_nvim
 
-	if [[ $step == 1 ]]; then
+	if [ $step -eq 1 ]; then
 		keep_going
 	fi
 
 	# install pyenv
 	install_or_update_pyenv
 
-	if [[ $step == 1 ]]; then
+	if [ $step -eq 1 ]; then
 		keep_going
 	fi
 
