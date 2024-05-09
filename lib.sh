@@ -75,8 +75,9 @@ install_nix() {
 configure_home_manager() {
 	# install the home-manager config
 	echo "Installing home-manager..."
-	zsh -i -c "nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager"
-	zsh -i -C "nix-channel --update"
+	zsh -c "source /etc/zshrc && \
+		nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager && \
+		nix-channel --update"
 
 	nix-shell '<home-manager>' -A install
 
