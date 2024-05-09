@@ -25,11 +25,9 @@ if [ $# -le 2 ]; then
     while [ $# -gt 0 ]; do
         case $1 in
             --all)
-                INSTALL_MODE=all
-                ;;
+                INSTALL_MODE=all;;
             --user)
-                INSTALL_MODE=user
-                ;;
+                INSTALL_MODE=user;;
             --system)
                 INSTALL_MODE=system;;
             --yes)
@@ -40,9 +38,6 @@ if [ $# -le 2 ]; then
         esac
         shift
     done
-else:
-    echo "$RED$RED_UL" "Select one and only one install option!"
-    echo "$ESC"
 fi
 
 if [ "$INSTALL_MODE" = "none_selected" ]; then
@@ -57,6 +52,7 @@ fi
 
 if ! [ "$CONFIRMED" = "yes" ]; then
     textout "$RED$RED_UL" "WARNING: This will render any existing environment destroyed!"
+    textout "$RED$RED_UL" "You selected install option = $INSTALL_MODE."
     if ! ui_confirm "Install the environment? (Y/y to proceed): "; then
             echo "$RED$RED_UL" "Quitting install!"
             return 0
@@ -67,4 +63,14 @@ fi
 # prepare and/or update the osl
 echo "$BLUE" "Beginning the install..."
 
+case $INSTALL_MODE in
+    system)
+        echo "Installing system components..."
+        install_system;;
+    user)
+        echo "Installing user components..."
+        install_user;;
+    *)
+        echo "Unknown install mode: $INSTALL_MODE"
+esac
 

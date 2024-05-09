@@ -66,20 +66,20 @@ install_nix() {
 	fi
 
 	echo "Installing nix..."
-	sh < curl -L https://nixos.org/nix/install --daemon --yes
+	sh <(curl -L https://nixos.org/nix/install) --daemon --yes
 
 	 . $HOME/.nix-profile/etc/profile.d/nix.sh
 
-	echo "Installing home-manager..."
-	echo installing home-manager
-	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-	nix-channel --update
-
-	nix-shell '<home-manager>' -A install
 }
 
 configure_home_manager() {
 	# install the home-manager config
+	echo "Installing home-manager..."
+	zsh -i -c "nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager"
+	zsh -i -C "nix-channel --update"
+
+	nix-shell '<home-manager>' -A install
+
 	echo "Configuring home-manager"
 	if [ ! -e ~/src/nix-home-manager ]; then
 		mkdir -p ~/src/nix-home-manager
@@ -175,7 +175,7 @@ install_system() {
 	elif [[ `uname` == "Darwin" ]]; then
 		prepare_or_update_osx
 	else
-		print "Unknown OS. Stopping!"
+		echo "Unknown OS. Stopping!"
 		return
 	fi
 
