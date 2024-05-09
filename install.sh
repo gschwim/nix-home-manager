@@ -70,6 +70,12 @@ case $INSTALL_MODE in
     user)
         echo "Installing user components..."
         install_user;;
+    all)
+        echo "Installing all..."
+        echo "System components installing now..."
+        install_system
+        echo "Installing user components..."
+        install_user;;
     *)
         echo "Unknown install mode: $INSTALL_MODE"
 esac
