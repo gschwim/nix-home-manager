@@ -68,7 +68,7 @@ install_nix() {
 	echo "Installing nix..."
 	sh <(curl -L https://nixos.org/nix/install) --daemon --yes
 
-	 . $HOME/.nix-profile/etc/profile.d/nix.sh
+	 # . $HOME/.nix-profile/etc/profile.d/nix.sh
 
 }
 
@@ -77,9 +77,8 @@ configure_home_manager() {
 	echo "Installing home-manager..."
 	zsh -c "source /etc/zshrc && \
 		nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager && \
-		nix-channel --update"
-
-	nix-shell '<home-manager>' -A install
+		nix-channel --update && \
+		nix-shell '<home-manager>' -A install"
 
 	echo "Configuring home-manager"
 	if [ ! -e ~/src/nix-home-manager ]; then
