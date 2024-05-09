@@ -195,6 +195,8 @@ install_system() {
 }
 
 install_user() {
+	set_shell
+
 	# configure home-manager
 	configure_home_manager
 
