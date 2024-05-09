@@ -1,3 +1,4 @@
+#!/bin/zsh
 # import the lib.sh stuff
 . ./lib.sh
 
