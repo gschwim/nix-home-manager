@@ -19,6 +19,8 @@ clean_old() {
 		rm -rf ~/.oh-my-zsh
 	fi
 
+	rm -rf ~/.config/starship.toml
+
 	if [ -e ~/.zshrc ]; then
 		rm ~/.zshrc
 		rm ~/.zprofile
@@ -66,7 +68,9 @@ install_nix() {
 	fi
 
 	echo "Installing nix..."
-	sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+	# sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+	curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
+
 
 	 # . $HOME/.nix-profile/etc/profile.d/nix.sh
 
