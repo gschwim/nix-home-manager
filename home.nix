@@ -373,8 +373,10 @@ in
       autoload -U down-line-or-beginning-search
       zle -N up-line-or-beginning-search
       zle -N down-line-or-beginning-search
+      # These are for linux
       bindkey "^[OA" up-line-or-beginning-search # Up
       bindkey "^[OB" down-line-or-beginning-search # Down
+      # These are for OSX
       bindkey "^[[A" up-line-or-beginning-search # Up
       bindkey "^[[B" down-line-or-beginning-search # Down
       
