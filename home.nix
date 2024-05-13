@@ -381,7 +381,7 @@ in
       bindkey "^[[B" down-line-or-beginning-search # Down
       
       # pyenv activation
-      if [ -e .pyenv/bin/pyenv ]; then
+      if [ -e ~/.pyenv/bin/pyenv ]; then
         export PYENV_ROOT="$HOME/.pyenv"
         [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
         eval "$(pyenv init -)"
