@@ -375,8 +375,8 @@ in
       zle -N down-line-or-beginning-search
       bindkey "^[OA" up-line-or-beginning-search # Up
       bindkey "^[OB" down-line-or-beginning-search # Down
-      # bindkey "^[[A" up-line-or-beginning-search # Up
-      # bindkey "^[[B" down-line-or-beginning-search # Down
+      bindkey "^[[A" up-line-or-beginning-search # Up
+      bindkey "^[[B" down-line-or-beginning-search # Down
       
       # pyenv activation
       if [ -e .pyenv/bin/pyenv ]; then

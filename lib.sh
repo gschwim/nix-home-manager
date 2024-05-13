@@ -62,10 +62,10 @@ install_nix() {
 		return
 	fi
 
-	if [ "$(uname)" = "Darwin" ]; then
-		echo "TODO - installer for OSX"
-		return
-	fi
+	# if [ "$(uname)" = "Darwin" ]; then
+	# 	echo "TODO - installer for OSX"
+	# 	return
+	# fi
 
 	echo "Installing nix..."
 	# sh <(curl -L https://nixos.org/nix/install) --daemon --yes
