@@ -360,8 +360,10 @@ in
         src = pkgs.fetchFromGitHub {
           owner = "junegunn";
           repo = "fzf-git.sh";
-          rev = "main";
-          sha256 = "wSBcmshT/Jbk5UzGMOhCq+Kj2rzxLUPcqdf9SChHkps=";
+          # pinning to a specific commit as this appears to change from time to time
+          # rev = "main";
+          rev = "bd8ac4ba4c9d7d12b34f7fa2b0d334f50cdb5254";
+          sha256 = "ZYgov/P7fcB1Zjj5UMVbr7+bjRKLwzpqddHBOCNd+RQ=";
         };
       }
     ];
