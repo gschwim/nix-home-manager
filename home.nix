@@ -421,6 +421,8 @@ in
         plugin = tmuxPlugins.resurrect;
         extraConfig = ''
           set -g @resurrect-capture-pane-contents 'on'
+          set -g allow-passthrough on
+          set -s set-clipboard on
         '';
       }
       {
