@@ -2,6 +2,7 @@
 
 let
   shellAliases = {
+    diff = "difft";
     cat = "bat";
     cd = "z";
     less = "bat";
@@ -280,6 +281,8 @@ in
     pkgs.tlrc
     pkgs.wget
     pkgs.curl
+    pkgs.difftastic
+    pkgs.devenv
 
     # pkgs.bat
     # pkgs.stable.rust
@@ -552,4 +555,5 @@ in
     enableZshIntegration = true;
     # options = {};
   };
+  programs.btop = { enable = true; };
 }
