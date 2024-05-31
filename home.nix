@@ -281,8 +281,8 @@ in
     pkgs.tlrc
     pkgs.wget
     pkgs.curl
-    pkgs.difftastic
-    pkgs.devenv
+    # pkgs.difftastic
+    # pkgs.devenv
 
     # pkgs.bat
     # pkgs.stable.rust
@@ -389,14 +389,14 @@ in
       bindkey "^[[B" down-line-or-beginning-search # Down
       
       # pyenv activation
-      if [ -e ~/.pyenv/bin/pyenv ]; then
-        export PYENV_ROOT="$HOME/.pyenv"
-        [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-        eval "$(pyenv init -)"
-        print "pyenv initialized!"
-      else
-        print "pyenv init missing!"
-      fi
+      # if [ -e ~/.pyenv/bin/pyenv ]; then
+      #   export PYENV_ROOT="$HOME/.pyenv"
+      #   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+      #   eval "$(pyenv init -)"
+      #   print "pyenv initialized!"
+      # else
+      #   print "pyenv init missing!"
+      # fi
 
       # local overrides
       if [ -e ~/.config/zsh/zshrc_local ]; then
@@ -556,4 +556,10 @@ in
     # options = {};
   };
   programs.btop = { enable = true; };
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;
+    nix-direnv.enable = true;
+    
+  };
 }
