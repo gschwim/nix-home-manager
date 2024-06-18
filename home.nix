@@ -221,6 +221,9 @@ let
     package.disabled = true;
     
     container.format = "[$symbol$symbol]($style) ";
+    hostname = {
+      ssh_only = false;
+      };
   };
 in
 {
@@ -228,8 +231,10 @@ in
   # manage.
   # home.username = "schwim2";
   # home.homeDirectory = "/home/schwim2";
-  home.username = builtins.getEnv "USER";
-  home.homeDirectory = builtins.getEnv "HOME";
+  # home.username = builtins.getEnv "USER";
+  home.username = "schwim";
+  home.homeDirectory = "/Users/schwim";
+  # home.homeDirectory = builtins.getEnv "HOME";
   home.sessionPath = [
     "$HOME/.local/bin"
   ];
@@ -281,12 +286,8 @@ in
     pkgs.tlrc
     pkgs.wget
     pkgs.curl
-    # pkgs.difftastic
-    # pkgs.devenv
+    pkgs.difftastic
 
-    # pkgs.bat
-    # pkgs.stable.rust
-    
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
     # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
@@ -388,15 +389,15 @@ in
       bindkey "^[[A" up-line-or-beginning-search # Up
       bindkey "^[[B" down-line-or-beginning-search # Down
       
-      # pyenv activation
-      # if [ -e ~/.pyenv/bin/pyenv ]; then
-      #   export PYENV_ROOT="$HOME/.pyenv"
-      #   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-      #   eval "$(pyenv init -)"
-      #   print "pyenv initialized!"
-      # else
-      #   print "pyenv init missing!"
-      # fi
+      pyenv activation
+      if [ -e ~/.pyenv/bin/pyenv ]; then
+        export PYENV_ROOT="$HOME/.pyenv"
+        [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+        print "pyenv initialized!"
+      else
+        print "pyenv init missing!"
+      fi
 
       # local overrides
       if [ -e ~/.config/zsh/zshrc_local ]; then
