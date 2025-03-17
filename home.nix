@@ -224,6 +224,8 @@ let
     hostname = {
       ssh_only = false;
       };
+    # git_status.disabled = true;
+    # python.disabled = true;
   };
 in
 {
@@ -300,6 +302,9 @@ in
     # (pkgs.writeShellScriptBin "my-hello" ''
     #   echo "Hello, ${config.home.username}!"
     # '')
+
+    # rustup
+    # pkgs.rustup
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -347,6 +352,7 @@ in
   };
   programs.zsh =  {
     enable = true;
+    zprof.enable = true;
     dotDir = ".config/zsh";
     autosuggestion.enable = true;
     completionInit = "autoload -U compinit && compinit -u";
@@ -389,7 +395,7 @@ in
       bindkey "^[[A" up-line-or-beginning-search # Up
       bindkey "^[[B" down-line-or-beginning-search # Down
       
-      pyenv activation
+      # pyenv activation
       if [ -e ~/.pyenv/bin/pyenv ]; then
         export PYENV_ROOT="$HOME/.pyenv"
         [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
