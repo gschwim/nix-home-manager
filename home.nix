@@ -235,8 +235,8 @@ in
   # home.homeDirectory = "/home/schwim2";
   # home.username = builtins.getEnv "USER";
   home.username = "schwim";
-  home.homeDirectory = "/Users/schwim";
-  # home.homeDirectory = builtins.getEnv "HOME";
+  # home.homeDirectory = "/Users/schwim";
+  home.homeDirectory = builtins.getEnv "HOME";
   home.sessionPath = [
     "$HOME/.local/bin"
   ];
