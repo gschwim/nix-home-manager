@@ -227,6 +227,9 @@ let
     # git_status.disabled = true;
     # python.disabled = true;
   };
+
+    # dev environments flakes
+    devEnvs = import ~/environments/python { inherit pkgs; };
 in
 {
   # Home Manager needs a bit of information about you and the paths it should
@@ -305,6 +308,17 @@ in
 
     # rustup
     # pkgs.rustup
+
+    ### for dev environments flake
+    (pkgs.writeShellScriptBin "python39-dev" ''
+      nix develop ~/environments/python#python39-dev
+    '')
+    (pkgs.writeShellScriptBin "python311-dev" ''
+      nix develop ~/environments/python#python311-dev
+    '')
+    (pkgs.writeShellScriptBin "python313-dev" ''
+      nix develop ~/environments/python#python313-dev
+    '')
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -352,7 +366,7 @@ in
   };
   programs.zsh =  {
     enable = true;
-    zprof.enable = true;
+    zprof.enable = false;
     dotDir = ".config/zsh";
     autosuggestion.enable = true;
     completionInit = "autoload -U compinit && compinit -u";
@@ -395,15 +409,15 @@ in
       bindkey "^[[A" up-line-or-beginning-search # Up
       bindkey "^[[B" down-line-or-beginning-search # Down
       
-      # pyenv activation
-      if [ -e ~/.pyenv/bin/pyenv ]; then
-        export PYENV_ROOT="$HOME/.pyenv"
-        [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-        eval "$(pyenv init -)"
-        print "pyenv initialized!"
-      else
-        print "pyenv init missing!"
-      fi
+      # # pyenv activation
+      # if [ -e ~/.pyenv/bin/pyenv ]; then
+      #   export PYENV_ROOT="$HOME/.pyenv"
+      #   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+      #   eval "$(pyenv init -)"
+      #   print "pyenv initialized!"
+      # else
+      #   print "pyenv init missing!"
+      # fi
 
       # local overrides
       if [ -e ~/.config/zsh/zshrc_local ]; then
