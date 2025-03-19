@@ -3,29 +3,7 @@
 
 let
 
-  shellAliases = import ./shell.nix;
-
-  configStarship = {
-    # Get editor completions based on the config schema
-    "$schema" = "https://starship.rs/config-schema.json";
-    
-    # Inserts a blank line between shell prompts
-    add_newline = true;
-    
-    # Replace the '❯' symbol in the prompt with '➜'
-    # The name of the module we are configuring is 'character'
-    character.success_symbol = "[➜ ➜](bold green)"; # The "success_symbol" segment is being set to "➜" with the color "bold green"
-    
-    # Disable the package module, hiding it from the prompt completely
-    package.disabled = true;
-    
-    container.format = "[$symbol$symbol]($style) ";
-    hostname = {
-      ssh_only = false;
-      };
-    # git_status.disabled = true;
-    # python.disabled = true;
-  };
+  inherit (import ./shell.nix) shellAliases configStarship;
 
     # dev environments flakes
   devEnvs = import ~/environments/python { inherit pkgs; };
