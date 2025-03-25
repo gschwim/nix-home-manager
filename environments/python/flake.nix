@@ -21,12 +21,9 @@
               python39.pkgs.pip
             ];
             shellHook = ''
-              export PYTHONPATH=""
-              export PATH="$PWD/.venv/bin:${pkgs.python39.pkgs.pip}/bin:$PATH"
-              if [ ! -d .venv ]; then
-                poetry env use ${pkgs.python39}/bin/python
-              fi
-              echo "Python 3.9 environment activated"
+              poetry env use ${pkgs.python39}/bin/python
+              eval $(poetry env activate)
+              echo "Python 3.9 environment activated"              
             '';
           };
 
@@ -38,11 +35,8 @@
               python311.pkgs.pip
             ];
             shellHook = ''
-              export PYTHONPATH=""
-              export PATH="$PWD/.venv/bin:${pkgs.python311.pkgs.pip}/bin:$PATH"
-              if [ ! -d .venv ]; then
-                poetry env use ${pkgs.python311}/bin/python
-              fi
+              poetry env use ${pkgs.python311}/bin/python
+              eval $(poetry env activate)
               echo "Python 3.11 environment activated"
             '';
           };
@@ -51,15 +45,12 @@
           python313-dev = pkgs.mkShell {
             buildInputs = with pkgs; [
               python313
-              poetry
               python313.pkgs.pip
+              poetry
             ];
             shellHook = ''
-              export PYTHONPATH=""
-              export PATH="$PWD/.venv/bin:${pkgs.python313.pkgs.pip}/bin:$PATH"
-              if [ ! -d .venv ]; then
-                poetry env use ${pkgs.python313}/bin/python
-              fi
+              poetry env use ${pkgs.python313}/bin/python
+              eval $(poetry env activate)
               echo "Python 3.13 environment activated"
             '';
           };

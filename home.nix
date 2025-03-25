@@ -6,7 +6,7 @@ let
   inherit (import ./shell.nix) shellAliases configStarship;
 
     # dev environments flakes
-  devEnvs = import ~/environments/python { inherit pkgs; };
+  devEnvs = import environments/python { inherit pkgs; };
 
 in
 {
