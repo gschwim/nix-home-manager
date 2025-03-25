@@ -70,6 +70,8 @@ in
     pkgs.wget
     pkgs.curl
     pkgs.difftastic
+    pkgs.python3
+    pkgs.yt-dlp
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -87,6 +89,9 @@ in
     # rustup
     # pkgs.rustup
 
+    (pkgs.writeShellScriptBin "vget" ''
+      yt-dlp --cookies-from-browser chrome $*
+    '')
     ### for dev environments flake
     (pkgs.writeShellScriptBin "python39-dev" ''
       nix develop ~/environments/python#python39-dev
