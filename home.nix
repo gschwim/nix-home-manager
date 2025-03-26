@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 
 
+# TODO - do I need this anymore?
 # let
 #
 #     # dev environments flakes
@@ -11,11 +12,6 @@
   imports = [
     ./modules/cli/cli.nix
   ];
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
-  # home.username = "schwim2";
-  # home.homeDirectory = "/home/schwim2";
-  # home.username = builtins.getEnv "USER";
   home.username = "schwim";
   home.homeDirectory = if pkgs.stdenv.isDarwin then
     "/Users/schwim"
@@ -24,8 +20,6 @@
   else
     throw "Unsupported OS: only Darwin (macOS) and Linux are supported";
 
-  # home.homeDirectory = "/Users/schwim";
-  # home.homeDirectory = builtins.getEnv "HOME";
   home.sessionPath = [
     "$HOME/.local/bin"
   ];
