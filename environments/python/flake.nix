@@ -54,6 +54,8 @@
               echo "Python 3.13 environment activated"
             '';
           };
+          # # need to set this up for flutter
+          # nix shell --impure nixpkgs#flutter nixpkgs#cocoapods nixpkgs#jdk17 -c $SHELL
         };
       });
 }
