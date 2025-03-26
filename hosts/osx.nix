@@ -2,6 +2,7 @@
 {
   home.packages = [
     pkgs.hello
+    pkgs.mtr-gui
   ];
 
 }
