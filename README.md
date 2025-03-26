@@ -87,7 +87,7 @@ Define inputs and outputs to pull in Home Manager and handle system-specific bui
           username = "yourusername";
           modules = [ ./hosts/darwin.nix ];
         };
-        "darwin-silicon" = mkHome {
+        "darwin-apple" = mkHome {
           system = "aarch64-darwin";
           username = "yourusername";
           modules = [ ./hosts/darwin.nix ];

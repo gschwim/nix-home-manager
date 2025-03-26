@@ -1,12 +1,12 @@
 { config, pkgs, ... }:
 
 
-let
-
-    # dev environments flakes
-  devEnvs = import environments/python { inherit pkgs; };
-
-in
+# let
+#
+#     # dev environments flakes
+#   devEnvs = import environments/python { inherit pkgs; };
+#
+# in
 {
   imports = [
     ./modules/cli/cli.nix
@@ -17,8 +17,15 @@ in
   # home.homeDirectory = "/home/schwim2";
   # home.username = builtins.getEnv "USER";
   home.username = "schwim";
+  home.homeDirectory = if pkgs.stdenv.isDarwin then
+    "/Users/schwim"
+  else if pkgs.stdenv.isLinux then
+    "/home/schwim"
+  else
+    throw "Unsupported OS: only Darwin (macOS) and Linux are supported";
+
   # home.homeDirectory = "/Users/schwim";
-  home.homeDirectory = builtins.getEnv "HOME";
+  # home.homeDirectory = builtins.getEnv "HOME";
   home.sessionPath = [
     "$HOME/.local/bin"
   ];
