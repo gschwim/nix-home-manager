@@ -162,7 +162,13 @@ in
     ripgrep.enable = true;
 
     # neovim
-    neovim.enable = true;
+    neovim = {
+      enable = true;
+      defaultEditor = true;
+      plugins = [
+        nixd
+      ]
+    };
 
     fzf = {
       enable = true;
