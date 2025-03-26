@@ -10,20 +10,27 @@
     };
   };
 
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs, home-manager, ... }:
     let
-      system = "x86_64-darwin";
-      pkgs = nixpkgs.legacyPackages.${system};
+      mkHome = { system, modules }: home-manager.lib.homeManagerConfiguration
+      {
+        pkgs = import nixpkgs { inherit system; };
+        modules = modules ++ [
+          ./home.nix
+        ];
+      };
     in {
-      homeConfigurations.darwin-intel = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-
-        # Specify your home configuration modules here, for example,
-        # the path to your home.nix.
-        modules = [ ./home.nix ];
-
-        # Optionally use extraSpecialArgs
-        # to pass through arguments to home.nix
+      homeConfigurations = {
+        darwin-intel = mkHome {
+          system = "x86_64-darwin";
+          modules = [];
+        };
+        osx-intel = mkHome {
+          system = "x86_64-darwin";
+          modules = [
+            ./hosts/osx.nix
+          ];
+        };
       };
     };
 }
