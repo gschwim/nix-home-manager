@@ -16,6 +16,7 @@
       let
         mkHome = { system, modules }: home-manager.lib.homeManagerConfiguration
         {
+          system = system;
           pkgs = import nixpkgs { inherit system; };
           modules = modules ++ [
             ./home.nix
@@ -24,16 +25,16 @@
       in {
         homeConfigurations = {
           darwin-intel = mkHome {
-            system = "x86_64-darwin";
+            # system = "x86_64-darwin";
             modules = [];
           };
           linux-x86 = mkHome {
-            system = "x86_64-linux";
+            # system = "x86_64-linux";
             modules = [];
           };
           osx-intel = mkHome {
             # this is a test only
-            system = "x86_64-darwin";
+            # system = "x86_64-darwin";
             modules = [
               ./hosts/osx.nix
             ];
