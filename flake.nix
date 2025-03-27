@@ -12,6 +12,7 @@
   };
 
   outputs = { self, nixpkgs, home-manager, flake-utils, ... }:
+
     flake-utils.lib.eachDefaultSystem (system:
       let
         mkHome = { system, modules }: home-manager.lib.homeManagerConfiguration
@@ -25,6 +26,7 @@
       in {
         homeConfigurations = {
           darwin-intel = mkHome {
+            system = system;
             # system = "x86_64-darwin";
             modules = [];
           };
