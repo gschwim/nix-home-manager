@@ -25,7 +25,12 @@
           system = "x86_64-darwin";
           modules = [];
         };
+        linux-x86 = mkHome {
+          system = "x86_64-linux";
+          modules = [];
+        };
         osx-intel = mkHome {
+          # this is a test only
           system = "x86_64-darwin";
           modules = [
             ./hosts/osx.nix
