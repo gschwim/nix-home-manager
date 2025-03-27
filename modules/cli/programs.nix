@@ -165,9 +165,8 @@ in
     neovim = {
       enable = true;
       defaultEditor = true;
-      plugins = [
-        nixd
-      ]
+      extraPackages = [
+      ];
     };
 
     fzf = {
