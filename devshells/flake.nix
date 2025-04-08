@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/24.05";
+    # nixpkgs-stable.url = "github:NixOS/nixpkgs/24.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -17,7 +17,7 @@
         devShells = {
           # Python 3.9 environment
           python39-dev = pkgs.mkShell {
-            buildInputs = with pkgs-stable; [
+            buildInputs = with pkgs; [
               python39
               poetry
               python39.pkgs.pip

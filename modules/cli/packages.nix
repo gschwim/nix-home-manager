@@ -8,6 +8,7 @@
     pkgs.curl
     pkgs.difftastic
     pkgs.python3
+    pkgs.poetry
     pkgs.yt-dlp
 
     ### vget for video grabs
