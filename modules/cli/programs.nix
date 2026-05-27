@@ -89,6 +89,8 @@ in
       enable = true;
       terminal = "screen-256color";
       # terminal = "tmux-256color";
+      baseIndex = 1;
+      mouse = true;
       historyLimit = 100000;
       plugins = with pkgs; [
         tmuxPlugins.cpu
