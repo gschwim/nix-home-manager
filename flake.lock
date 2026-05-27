@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "dotfiles-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1747698005,
+        "narHash": "sha256-e/Pbrh0+SaHEx32HcLwEFZ3qYwuTKNmcTB+eUEIRRgY=",
+        "owner": "gschwim",
+        "repo": "dotfiles.nvim",
+        "rev": "eccc21818436e53a9b0ed2465d388eb3ddb76ca0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gschwim",
+        "repo": "dotfiles.nvim",
+        "type": "github"
+      }
+    },
     "home-manager-25-11": {
       "inputs": {
         "nixpkgs": [
@@ -76,6 +92,7 @@
     },
     "root": {
       "inputs": {
+        "dotfiles-nvim": "dotfiles-nvim",
         "home-manager-25-11": "home-manager-25-11",
         "home-manager-26-05": "home-manager-26-05",
         "nixpkgs-25-11": "nixpkgs-25-11",

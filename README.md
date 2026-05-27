@@ -1,243 +1,99 @@
+# nix-home-manager
 
+Personal Home Manager configuration using flakes. Designed to work cleanly across:
 
-```quote
-I use nix home manager across linux and osx systems. Understandably, some gui
-packages are needed in some cases, but not others. What is the best way to
-implement home manager such that I can a) maximize configuration reuse, b)
-accommodate systems that have guis and associated packages installed as well as
-those that don't (i.e. cli only), and differentiate between OSX and linux
-systems as the homedirs are different paths. OSX systems can be apple silicon or
-intel. In OSX cases I do not need a CLI-only profile.Oh, and I'd like to use
-flakes with this.```
+- macOS (Intel)
+- Ubuntu Linux
+- NixOS
 
-To achieve your goals with Nix Home Manager—maximizing configuration reuse,
-accommodating GUI and CLI-only systems, differentiating between macOS (Darwin)
-and Linux, and integrating Flakes—here’s a structured approach. This setup
-assumes you’re comfortable with Nix’s declarative syntax and Flakes’
-reproducible builds.
+## Current State (as of 2026)
 
-1. Project Structure
+- **Linux**: Pinned to `nixpkgs-25.11` + matching `home-manager/release-25.11`
+- **Intel macOS**: Pinned to the final supported release (`nixpkgs-26.05-darwin` + `home-manager/release-26.05`)
+- Fully user-agnostic: no hard-coded usernames. The same config works for any user on any supported machine.
+- Core shell environment lives in `modules/cli/` (zsh + starship + tmux + fzf + git+delta + eza + bat + direnv + neovim + etc.)
 
-Start with a Flake-based setup for reproducibility. Here’s a suggested directory
-structure:
+## Usage
 
-```nix
-home-manager-config/
-├── flake.nix
-├── flake.lock
-├── home.nix              # Common configuration
-├── modules/
-│   ├── gui.nix          # GUI-specific settings
-│   ├── cli.nix          # CLI-only settings
-│   └── os-specific.nix  # OS-specific path logic
-├── hosts/
-│   ├── linux-gui.nix    # Linux with GUI
-│   ├── linux-cli.nix    # Linux CLI-only
-│   └── darwin.nix       # macOS (GUI only)
-└── lib/
-    └── custom.nix       # Custom helper functions
+### On macOS (Intel)
+
+```bash
+cd ~/src/nix-home-manager
+
+# Daily driver (includes extras from hosts/osx.nix)
+home-manager switch --flake .#osx-intel
+
+# Minimal version
+home-manager switch --flake .#darwin-intel
 ```
 
-2. Flake Setup (flake.nix)
-Define inputs and outputs to pull in Home Manager and handle system-specific builds.
-
-```nix
-{
-  description = "Home Manager configuration with Flakes";
-
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-
-  outputs = { self, nixpkgs, home-manager, ... }@inputs:
-    let
-      lib = nixpkgs.lib;
-      mkHome = { system, username, modules }: home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs { inherit system; };
-        modules = modules ++ [
-          ./home.nix
-          {
-            home = {
-              username = username;
-              homeDirectory = lib.mkDefault (if system == "x86_64-darwin" || system == "aarch64-darwin"
-                                             then "/Users/${username}"
-                                             else "/home/${username}");
-            };
-          }
-        ];
-      };
-    in {
-      homeConfigurations = {
-        "linux-gui" = mkHome {
-          system = "x86_64-linux";
-          username = "yourusername";
-          modules = [ ./hosts/linux-gui.nix ];
-        };
-        "linux-cli" = mkHome {
-          system = "x86_64-linux";
-          username = "yourusername";
-          modules = [ ./hosts/linux-cli.nix ];
-        };
-        "darwin-intel" = mkHome {
-          system = "x86_64-darwin";
-          username = "yourusername";
-          modules = [ ./hosts/darwin.nix ];
-        };
-        "darwin-apple" = mkHome {
-          system = "aarch64-darwin";
-          username = "yourusername";
-          modules = [ ./hosts/darwin.nix ];
-        };
-      };
-    };
-}```
-
-Inputs: Nixpkgs and Home Manager are pinned via Flakes.
-
-Outputs: Define configurations for each system type. The mkHome function
-abstracts the boilerplate, setting the home directory based on OS.
-
-Systems: Explicitly support x86_64-linux, x86_64-darwin, and aarch64-darwin.
-
-3. Common Configuration (home.nix)
-
-This is your reusable base configuration, applied to all systems.
-
-```nix
-{ config, pkgs, ... }:
-{
-  # Basic packages for all systems
-  home.packages = with pkgs; [
-    htop
-    tmux
-    neovim
-  ];
-
-  programs = {
-    git.enable = true;
-    zsh.enable = true;
-  };
-
-  # Import modular configurations
-  imports = [
-    ./modules/cli.nix
-    ./modules/os-specific.nix
-  ];
-}```
-
-4. Modular Configurations
-
-Separate GUI, CLI, and OS-specific logic into reusable modules.
-
-modules/cli.nix
-CLI tools shared across all systems.
-
-```nix
-{ pkgs, ... }:
-{
-  home.packages = with pkgs; [
-    fzf
-    ripgrep
-  ];
-}```
-
-modules/gui.nix
-GUI-specific packages and settings.
-
-```nix
-{ pkgs, ... }:
-{
-  home.packages = with pkgs; [
-    firefox
-    alacritty
-  ];
-
-  programs.vscode.enable = true;
-}```
-
-modules/os-specific.nix
-Handle OS-specific paths and settings.
-
-```nix
-{ config, pkgs, lib, ... }:
-{
-  config = lib.mkMerge [
-    (lib.mkIf (pkgs.stdenv.isLinux) {
-      # Linux-specific settings
-    })
-    (lib.mkIf (pkgs.stdenv.isDarwin) {
-      home.packages = with pkgs; [ rectangle ]; # macOS-specific app
-    })
-  ];
-}```
-
-5. Host-Specific Configurations
-
-Tie everything together for each use case.
-hosts/linux-gui.nix
-Linux with GUI.
-
-```nix
-
-{ config, pkgs, ... }:
-{
-  imports = [ ../modules/gui.nix ];
-  # Add any Linux-GUI-specific overrides
-}```
-
-hosts/linux-cli.nix
-Linux CLI-only.
-
-```nix
-
-{ config, pkgs, ... }:
-{
-  # No GUI module imported, CLI-only by default
-}```
-
-hosts/darwin.nix
-macOS (GUI only, for both Intel and Silicon).
-
-```nix
-
-{ config, pkgs, ... }:
-{
-  imports = [ ../modules/gui.nix ];
-  # macOS-specific overrides if needed
-}```
-
-6. Activation
-Initialize the Flake: nix flake init (if starting fresh) or use the flake.nix above.
-
-Apply a configuration, e.g., for Linux GUI:
+### On Linux (Ubuntu or NixOS)
 
 ```bash
-home-manager switch --flake .#linux-gui```
+cd ~/src/nix-home-manager
 
-For macOS Silicon:
+home-manager switch --flake .#linux-x86
+```
+
+The configuration now works for **any username** without editing source files. When defining new machines, just pass the desired `username` in the flake.
+
+## Repository Structure
+
+```
+flake.nix                 # Pins + homeConfigurations + mkHome helper
+home.nix                  # Core settings (now receives username from the flake)
+modules/cli/              # The actual configuration you care about
+├── cli.nix
+├── packages.nix
+├── programs.nix
+└── variables.nix         # Large git alias collection + starship config
+hosts/
+├── linux.nix             # Base Linux host (import for Ubuntu/NixOS machines)
+└── osx.nix               # Extras for the macOS daily driver
+devshells/                # Legacy Python environments (see TODOs below)
+```
+
+## Making It Work for a Different User / Machine
+
+Because everything is now parameterized:
+
+1. In `flake.nix`, add or modify a `homeConfiguration` and supply the correct `username`.
+2. Optionally import or extend a host module from `hosts/`.
+3. Run `home-manager switch --flake .#your-config`.
+
+Example for a new Linux user "alice":
+
+```nix
+alice-laptop = mkHome {
+  nixpkgs' = nixpkgs-25-11;
+  home-manager' = home-manager-25-11;
+  system = "x86_64-linux";
+  username = "alice";
+  modules = [ ./hosts/linux.nix ];
+};
+```
+
+## Deferred Work (TODOs)
+
+- **Python / language devshells**: The old `devshells/` flake and the wrapper scripts in `packages.nix` are outdated and broken in places. Modernizing and consolidating them into the main flake is tracked as future work.
+- **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.
+- **Pure Nix Neovim configuration (optional)**: The current Neovim setup sources the entire `dotfiles.nvim` repo via `xdg.configFile."nvim"`. A full conversion to declarative `programs.neovim` (plugins, treesitter grammars, etc.) is possible but would be significant effort because the config is built on lazy.nvim. This is tracked as an **optional low-priority future item**.
+
+The legacy scripts have deprecation headers and should not be used for new setups.
+
+## Verification
+
+After changes:
 
 ```bash
-home-manager switch --flake .#darwin-silicon```
+nix flake check
+nix eval --json .#homeConfigurations --apply builtins.attrNames
+```
 
-7. Key Features
+## Notes
 
-- Reuse: home.nix and modules like cli.nix are shared across all configs.
-- GUI/CLI Flexibility: Import gui.nix only where needed (Linux GUI and macOS).
-- OS Differentiation: os-specific.nix and dynamic homeDirectory handle Linux vs. macOS paths.
-- Flakes: Ensures reproducible builds across systems.
-- Apple Silicon/Intel: Same darwin.nix works for both, as Nixpkgs abstracts the architecture.
+- `home.stateVersion` is set to `"25.11"` on the Linux side (matching the pin).
+- The old `/home/schwim2` references and other machine-specific hardcoding have been removed.
+- Most of the value is in the shared `modules/cli/` programs and aliases — those are intentionally left alone unless something is actually broken.
 
-8. Tips
-
-- Testing: Use nix flake check to validate your setup.
-- Overrides: Add host-specific tweaks in the hosts/ files as needed.
-- Updates: Run nix flake update to refresh dependencies.
-
-This setup balances modularity and reuse while cleanly separating concerns. Let
-me know if you want to refine any part further!
-
-
+Contributions / extensions are welcome as long as they don't regress the multi-OS (macOS + Ubuntu + NixOS) and user-agnostic goals.

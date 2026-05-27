@@ -1,5 +1,14 @@
 #!/bin/sh
 
+###############################################################################
+# DEPRECATED
+#
+# This file is part of the legacy installer (install + lib.sh).
+# It is no longer maintained and is not the recommended setup path.
+# See the README for the current flake-based workflow.
+# Full modern bootstrap is a tracked future TODO.
+###############################################################################
+
 readonly ESC='\033[0m'
 readonly BOLD='\033[1m'
 readonly BLUE='\033[34m'

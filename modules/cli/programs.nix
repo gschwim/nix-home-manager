@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 let 
 
   # shellAliases = import ./shell.nix { inherit shellAliases; }; 
@@ -20,7 +20,7 @@ in
     zsh =  {
       enable = true;
       zprof.enable = false;
-      dotDir = ".config/zsh";
+      dotDir = "${config.home.homeDirectory}/.config/zsh";
       autosuggestion.enable = true;
       completionInit = "autoload -U compinit && compinit -u";
       shellAliases = shellAliases;
@@ -44,12 +44,7 @@ in
           };
         }
       ];
-      initExtra = ''
-        # added by Nix installer
-        if [ -e /home/schwim2/.nix-profile/etc/profile.d/nix.sh ]; then
-          . /home/schwim2/.nix-profile/etc/profile.d/nix.sh;
-        fi
-
+      initContent = ''
         # bindings for up/down history search
         autoload -U up-line-or-beginning-search
         autoload -U down-line-or-beginning-search
@@ -61,16 +56,6 @@ in
         # These are for OSX
         bindkey "^[[A" up-line-or-beginning-search # Up
         bindkey "^[[B" down-line-or-beginning-search # Down
-        
-        # # pyenv activation
-        # if [ -e ~/.pyenv/bin/pyenv ]; then
-        #   export PYENV_ROOT="$HOME/.pyenv"
-        #   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-        #   eval "$(pyenv init -)"
-        #   print "pyenv initialized!"
-        # else
-        #   print "pyenv init missing!"
-        # fi
 
         # local overrides
         if [ -e ~/.config/zsh/zshrc_local ]; then
@@ -164,10 +149,18 @@ in
     ripgrep.enable = true;
 
     # neovim
+    # The actual configuration (init.lua + plugins via lazy.nvim) is managed
+    # via xdg.configFile."nvim" sourcing the dotfiles.nvim flake input.
     neovim = {
       enable = true;
       defaultEditor = true;
-      extraPackages = [
+      withRuby = false;
+      withPython3 = false;
+
+      # Add tools that are commonly useful for Neovim configs (LSP, formatters, etc.)
+      # Many are already in the user's general packages, but listed here for the Neovim env.
+      extraPackages = with pkgs; [
+        # Common language servers / tools can be added here as needed
       ];
     };
 
@@ -191,25 +184,9 @@ in
 
     }; 
 
-    # # pyenv - not sure this is acceptable to me
-    # pyenv = {
-    #   enable = true;
-    #   enableZshIntegration = true;
-    # };
-    
     git = {
       enable = true;
-      delta.enable = true;
-      extraConfig = {
-
-        # core = {
-        #   pager = "delta";
-        # };
-
-        # interactive = {
-        #   diffFilter = "delta --color-only";
-        # };
-
+      settings = {
         delta = {
           navigate = true;
           side-by-side = true;
@@ -222,13 +199,27 @@ in
         };
 
         diff.colorMoved = "default";
-
       };
     };
 
-    thefuck = {
+    delta = {
+      enable = true;
+      enableGitIntegration = true;
+    };
+
+    # deprecated
+    # thefuck = {
+    #   enable = true;
+    #   enableZshIntegration = true;
+    # };
+    
+    pay-respects = {
       enable = true;
       enableZshIntegration = true;
+      options = [
+        "--alias"
+        "thefuck"
+      ];
     };
 
     zoxide = {
