@@ -70,6 +70,7 @@
   home.sessionVariables = {
     # EDITOR = "emacs";
     ZSH_AUTOSUGGEST_MANUAL_REBIND="True";
+    SHELL = "${pkgs.zsh}/bin/zsh";
   };
 
   # Bring in the full Neovim configuration from the external dotfiles.nvim repo.

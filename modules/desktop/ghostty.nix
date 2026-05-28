@@ -24,6 +24,9 @@
       # Shell integration (very useful with your zsh/tmux setup)
       shell-integration = "detect"
 
+      # Explicitly use zsh as the default shell (instead of whatever the system default is)
+      shell = "${pkgs.zsh}/bin/zsh"
+
       # macOS-specific niceties
       macos-titlebar-style = "hidden"
       macos-option-as-alt = true

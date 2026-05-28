@@ -41,4 +41,10 @@
     # Ghostty - modern GPU terminal (with OneDark theme preference)
     ghostty
   ];
+
+  # Manage Wezterm config declaratively on desktop profiles
+  # (points to the wezterm.lua at the root of this repo)
+  xdg.configFile."wezterm/wezterm.lua" = {
+    source = ../../wezterm.lua;
+  };
 }

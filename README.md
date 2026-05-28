@@ -73,6 +73,20 @@ alice-laptop = mkHome {
 };
 ```
 
+## Default Shell
+
+This configuration enables and heavily customizes Zsh for all profiles.
+
+To make Zsh your actual default shell:
+
+- **On NixOS** (recommended when using Home Manager as a module):  
+  Set `users.users.<yourname>.shell = pkgs.zsh;` in your system configuration.
+
+- **Standalone** (macOS, Ubuntu, or standalone on NixOS):  
+  Run `chsh -s $(which zsh)` (or the full Nix store path).
+
+We also set `SHELL` and configure Ghostty + Wezterm (on desktop profiles) to prefer Zsh.
+
 ## Deferred Work (TODOs)
 
 - **Python / language devshells**: The old `devshells/` flake and the wrapper scripts in `packages.nix` are outdated and broken in places. Modernizing and consolidating them into the main flake is tracked as future work.
