@@ -1,0 +1,15 @@
+# Nix
+result
+result-*
+.direnv/
+*.gcroots
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Local overrides (the config itself creates this)
+.config/zsh/zshrc_local

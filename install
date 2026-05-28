@@ -2,6 +2,19 @@
 # import the lib.sh stuff
 . ./lib.sh
 
+###############################################################################
+# DEPRECATED
+#
+# This legacy installer is no longer the recommended way to set up this
+# configuration. It predates the current flake-based approach.
+#
+# See the README for current usage:
+#   home-manager switch --flake .#osx-intel     # on macOS
+#   home-manager switch --flake .#linux-x86     # on Linux (Ubuntu/NixOS)
+#
+# Full modern bootstrap story is tracked as a future TODO.
+###############################################################################
+
 export step=0
 
 # handle the command line flags
