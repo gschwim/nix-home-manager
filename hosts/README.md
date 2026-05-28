@@ -40,6 +40,10 @@ A host file typically does two things:
 
     # Add anything else that should only exist on pleiades
   ];
+
+  # GUI apps (blender, reaper, etc.) are handled for visibility in the
+  # desktop launcher via modules/desktop/linux.nix. See pleiades.nix for notes
+  # on NixOS vs non-NixOS behavior.
 }
 ```
 
@@ -61,7 +65,7 @@ pleiades = mkHome {
 
 This directory now contains a real example host:
 
-- `pleiades.nix` — a full host that imports the `linux-desktop` target and adds machine-specific packages (blender, reaper, etc.).
+- `pleiades.nix` — a full host that imports the `linux-desktop` target and adds machine-specific packages (blender, reaper, etc.). GUI apps get special desktop integration handling so they appear in GNOME/etc. launchers (see the file for NixOS vs portable notes).
 
 You can build/switch it with:
 
