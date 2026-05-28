@@ -13,7 +13,11 @@
   #   };
 
   home.packages = with pkgs; [
-    # Add common Linux CLI niceties here as needed.
-    # Most heavy lifting is already in modules/cli/.
+    # Linux-only networking / system tools (not available or different on macOS)
+    ethtool
+    iproute2   # provides the `ss` command
+
+    # Add other common Linux CLI niceties here as needed.
+    # Most heavy lifting (cross-platform) is already in modules/cli/.
   ];
 }
