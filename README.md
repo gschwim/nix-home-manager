@@ -78,6 +78,7 @@ alice-laptop = mkHome {
 - **Python / language devshells**: The old `devshells/` flake and the wrapper scripts in `packages.nix` are outdated and broken in places. Modernizing and consolidating them into the main flake is tracked as future work.
 - **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.
 - **Pure Nix Neovim configuration (optional)**: The current Neovim setup sources the entire `dotfiles.nvim` repo via `xdg.configFile."nvim"`. A full conversion to declarative `programs.neovim` (plugins, treesitter grammars, etc.) is possible but would be significant effort because the config is built on lazy.nvim. This is tracked as an **optional low-priority future item**.
+- **NixOS module integration**: Support using this configuration via Home Manager as a NixOS module (instead of standalone `home-manager switch`). This would allow managing system + user configuration together with a single `nixos-rebuild switch`.
 
 The legacy scripts have deprecation headers and should not be used for new setups.
 

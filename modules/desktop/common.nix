@@ -11,8 +11,9 @@
   # note-taking, etc.) and have them available.
   # Prefer whatever the current desktop environment likes (GNOME, KDE, etc.).
   #
-  # Note: Some packages (e.g. dropbox) are unfree and require
-  # `nixpkgs.config.allowUnfree = true;` (or the predicate equivalent).
+  # Note: Unfree packages (e.g. dropbox) are allowed by default in this flake's
+  # homeConfigurations. If you import these modules elsewhere, you may need to
+  # enable unfree packages yourself.
   home.packages = with pkgs; [
     # Password management
     keepassxc

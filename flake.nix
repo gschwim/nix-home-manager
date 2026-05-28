@@ -31,7 +31,13 @@
     let
       mkHome = { nixpkgs', home-manager', system, username, modules ? [] }:
         home-manager'.lib.homeManagerConfiguration {
-          pkgs = import nixpkgs' { inherit system; };
+          pkgs = import nixpkgs' {
+            inherit system;
+            # Allow unfree packages (e.g. Dropbox, some fonts, etc.).
+            # This makes standalone `home-manager switch --flake` work
+            # without needing NIXPKGS_ALLOW_UNFREE=1 --impure every time.
+            config.allowUnfree = true;
+          };
           extraSpecialArgs = {
             inherit username;
             inherit dotfiles-nvim;
