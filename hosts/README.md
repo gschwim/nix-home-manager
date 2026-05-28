@@ -65,7 +65,7 @@ pleiades = mkHome {
 
 This directory now contains a real example host:
 
-- `pleiades.nix` — a full host that imports the `linux-desktop` target and adds machine-specific packages (blender, reaper, etc.). GUI apps get special desktop integration handling so they appear in GNOME/etc. launchers (see the file for NixOS vs portable notes).
+- `pleiades.nix` — a full host that imports the `linux-desktop` target and adds machine-specific packages (blender, reaper, etc.). GUI apps get special desktop integration handling so they appear in GNOME/etc. launchers (see the file for NixOS vs portable notes). There is also a noted future TODO for a manual `refresh-desktop` convenience script.
 
 You can build/switch it with:
 

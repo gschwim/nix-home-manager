@@ -39,4 +39,18 @@
   # (no extra work, perfect icon/theme integration, etc.), consider moving
   # heavy GUI apps like these into your system configuration.nix under
   # `environment.systemPackages` instead.
+  #
+  # === Potential Future TODO ===
+  # Consider adding a small convenience script (e.g. `refresh-desktop` or
+  # `hm-refresh-desktop`) that can be run on demand.
+  #
+  # The script would:
+  #   - Re-apply the .desktop symlinking + `update-desktop-database` + icon cache logic
+  #   - Print clear next steps (logout, or `gnome-shell --replace`, etc.)
+  #
+  # This would complement the existing automatic `extraProfileCommands` behavior
+  # (which only runs at switch time) and give an easy manual recovery path.
+  #
+  # It should remain portable across NixOS and non-NixOS distros.
+  # Future option: also expose it as `nix run .#refresh-desktop`.
 }

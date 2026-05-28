@@ -28,6 +28,12 @@
   #   For large GUI apps you want to feel "native", prefer installing them in
   #   your system configuration.nix via `environment.systemPackages` instead.
   #   They will then integrate perfectly without any extra work.
+  #
+  # === Potential Future TODO ===
+  # Add a small convenience script (e.g. `refresh-desktop`) that the user can run
+  # on demand. It would re-apply the same symlinking + database update logic and
+  # print clear instructions. This would be useful when the automatic version
+  # (run only at switch time) isn't enough.
   home.extraProfileCommands = ''
     DESKTOP_SRC="$HOME/.nix-profile/share/applications"
     DESKTOP_DST="$HOME/.local/share/applications"
