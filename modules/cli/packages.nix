@@ -39,7 +39,6 @@
     pkgs.signal-cli
 
     # Networking & packet analysis
-    pkgs.mtr
     pkgs.wireshark
     pkgs.termshark
     pkgs.nmap

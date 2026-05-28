@@ -17,6 +17,9 @@
     ethtool
     iproute2   # provides the `ss` command
 
+    # CLI mtr (the GUI version is provided by mtr-gui in desktop profiles)
+    mtr
+
     # Add other common Linux CLI niceties here as needed.
     # Most heavy lifting (cross-platform) is already in modules/cli/.
   ];

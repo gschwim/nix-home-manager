@@ -66,7 +66,6 @@
           system = "x86_64-linux";
           username = "schwim";
           modules = [
-            ./hosts/linux.nix
             ./hosts/linux-desktop.nix
           ];
         };
