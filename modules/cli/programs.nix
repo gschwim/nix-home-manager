@@ -57,6 +57,35 @@ in
         bindkey "^[[A" up-line-or-beginning-search # Up
         bindkey "^[[B" down-line-or-beginning-search # Down
 
+        # ------------------------------------------------------------------
+        # Dev shell helpers from your nix-home-manager checkout
+        # ------------------------------------------------------------------
+        # These give you short, path-free commands from *any* directory.
+        #
+        # Recommended one-time setup per machine (makes direnv + direct use even shorter):
+        #   nix registry add nix-home-manager "$HOME/src/nix-home-manager"
+        #
+        # Then you can use the short name "nix-home-manager" everywhere.
+        #
+        # The functions below work even without the registry (they resolve the path).
+        # Set NIX_HOME_MANAGER_FLAKE if your checkout is not in the default location.
+        : "''${NIX_HOME_MANAGER_FLAKE:=$HOME/src/nix-home-manager}"
+
+        dev() {
+          nix develop "''${NIX_HOME_MANAGER_FLAKE}#$1" "''${@:2}"
+        }
+
+        # Very short aliases for daily use
+        alias py313='dev python313-poetry'
+        alias py312='dev python312-poetry'
+        alias devrust='dev rust-stable'
+
+        # Examples:
+        #   py313
+        #   dev python313-poetry --command python -c 'import sys; print(sys.executable)'
+        #   devrust
+        #   py313 --command poetry --version
+
         # local overrides
         if [ -e ~/.config/zsh/zshrc_local ]; then
           source ~/.config/zsh/zshrc_local

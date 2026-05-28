@@ -47,6 +47,13 @@
           ];
         };
     in {
+      # Project devShells (Poetry-first, Rust, etc.).
+      # Defined in devshells/ (one file per shell + thin composer) per the approved plan.
+      # Daily global Python lives in the CLI Home Manager profile, not here.
+      devShells = import ./devshells {
+        inherit nixpkgs-25-11 nixpkgs-26-05-darwin;
+      };
+
       homeConfigurations = {
         # Linux pinned to 25.11 stable (no unstable)
         linux-x86 = mkHome {

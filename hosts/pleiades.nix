@@ -24,4 +24,33 @@
 
     # Add anything else that should only exist on pleiades
   ];
+
+  # NOTE on GUI apps (blender, reaper, etc.):
+  #
+  # These are installed via Home Manager so they work on both NixOS and
+  # non-NixOS machines (Ubuntu, Mint, etc.).
+  #
+  # On Linux desktops, GUI apps installed through `home.packages` often do
+  # not appear in the GNOME/Cinnamon/etc. launcher. We handle this automatically
+  # via the logic in modules/desktop/linux.nix (it symlinks .desktop files into
+  # ~/.local/share/applications and updates the database).
+  #
+  # If you are on a pure NixOS machine and want the absolute best integration
+  # (no extra work, perfect icon/theme integration, etc.), consider moving
+  # heavy GUI apps like these into your system configuration.nix under
+  # `environment.systemPackages` instead.
+  #
+  # === Potential Future TODO ===
+  # Consider adding a small convenience script (e.g. `refresh-desktop` or
+  # `hm-refresh-desktop`) that can be run on demand.
+  #
+  # The script would:
+  #   - Re-apply the .desktop symlinking + `update-desktop-database` + icon cache logic
+  #   - Print clear next steps (logout, or `gnome-shell --replace`, etc.)
+  #
+  # This would complement the existing automatic `extraProfileCommands` behavior
+  # (which only runs at switch time) and give an easy manual recovery path.
+  #
+  # It should remain portable across NixOS and non-NixOS distros.
+  # Future option: also expose it as `nix run .#refresh-desktop`.
 }
