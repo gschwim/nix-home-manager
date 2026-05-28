@@ -54,7 +54,7 @@ targets/
 
 hosts/
 └── (real machine configs go here, e.g. pleiades.nix)
-devshells/                # Legacy Python environments (see TODOs below)
+devshells/                # Project devShells (one file per shell). See "Development Environments" section.
 ```
 
 ## Making It Work for a Different User / Machine
@@ -91,14 +91,131 @@ To make Zsh your actual default shell:
 
 We also set `SHELL` and configure Ghostty + Wezterm (on desktop profiles) to prefer Zsh.
 
+## Development Environments
+
+This repo now provides **project-specific devShells** via `nix develop` / `nix shell` / direnv while preserving a reliable daily "global" Python experience in your normal CLI profile.
+
+### The two-layer mental model (the key concept)
+
+1. **Daily global Python** (your normal environment after `home-manager switch`)
+   - Always in `$PATH` for ad-hoc work, quick scripts, Jupyter notebooks started from anywhere, one-off `python -c`, etc.
+   - This is the spiritual successor to a pyenv "global" python.
+   - You control it the same way you control your Home Manager profile: edit `modules/cli/packages.nix` (or add tools via the normal profile mechanisms) and re-switch.
+   - "Toss and start fresh" is easy: `rm -rf ~/.cache/pypoetry/virtualenvs/*` (or the specific venv), use normal `python -m venv`, or simply re-switch after cleaning. No special global version manager required.
+
+2. **Project devShells** (the new `nix develop` things)
+   - Isolated, reproducible environments for a specific project or task.
+   - Launched on demand: `nix develop .#python313-poetry`
+   - When active (directly or via direnv), they take precedence over the daily global for that shell session — exactly like activating a venv or running `pyenv shell`.
+   - Poetry-first by design: the shells give you a good Python + Poetry + native build tools; **Poetry itself** manages `pyproject.toml`, the lockfile, and venvs. We deliberately do **not** force poetry2nix (which does not port well).
+
+When you are not inside a devShell, you are on the daily global. When you enter one, you get the project-isolated version. Clean, predictable, and matches how most Python developers already think.
+
+### Currently available project devShells
+
+| Shell                | Short alias (after switch) | What you get |
+|----------------------|----------------------------|--------------|
+| `python312-poetry`   | `py312`                    | Python 3.12 + Poetry + common tools |
+| `python313-poetry`   | `py313`                    | Python 3.13 + Poetry + common tools (recommended) |
+| `rust-stable`        | `devrust`                  | Modern Rust (rustc, cargo, rust-analyzer, clippy, rustfmt) |
+
+You can always use the full form too: `dev python313-poetry` or (after registry) `nix develop nix-home-manager#python313-poetry`.
+
+All are built from the same high-quality pinned nixpkgs inputs as your home configuration (25.11 for Linux, final 26.05-darwin for Intel macOS).
+
+### Launching shells (no long paths needed)
+
+After you run `home-manager switch`, your shell automatically gets these convenient helpers:
+
+```bash
+py313           # same as: nix develop ...#python313-poetry
+py312           # python 3.12 + Poetry
+devrust         # Rust stable
+
+# Or the more explicit form (also always available)
+dev python313-poetry
+dev rust-stable --command cargo --version
+```
+
+These work from **any directory** on any machine where you've deployed this config. No need to remember or type the path to the repo.
+
+**Even shorter (recommended one-time setup per machine):**
+
+```bash
+# Do this once on a machine (point it at wherever you keep the checkout)
+nix registry add nix-home-manager "$HOME/src/nix-home-manager"
+
+# Now you can use the short registered name everywhere:
+nix develop nix-home-manager#python313-poetry
+nix develop nix-home-manager#rust-stable
+```
+
+This is the cleanest way to completely eliminate long paths.
+
+### Direnv auto-loading (the good way)
+
+Once you have done the `nix registry add` step above on a machine, your `.envrc` files become beautifully short:
+
+```bash
+# .envrc  (in any project directory)
+use flake nix-home-manager#python313-poetry
+```
+
+```bash
+direnv allow
+```
+
+That's it. No absolute paths, no `../..` relative hacks, works on every machine after the one-time registry setup.
+
+**If you prefer not to use the registry**, the shell helpers above still make interactive use painless, and for direnv you can use a stable symlink convention:
+
+```bash
+# One-time per machine
+ln -sfn "$HOME/src/nix-home-manager" "$HOME/.config/nix-home-manager"
+
+# Then in any .envrc
+use flake ~/.config/nix-home-manager#python313-poetry
+```
+
+The helpers + registry (or symlink) combination removes the previous pain point of typing full repo paths constantly.
+
+### Daily global Python flexibility (the pyenv-like part)
+
+- The tools that are "just there" after a normal switch live in `modules/cli/packages.nix` (currently `python3` + `poetry` plus whatever else you have added over time).
+- Need a different Python for a one-off task? Use a normal virtualenv or `python -m venv /tmp/experiment && source ...`
+- Want to experiment with a completely clean slate? Delete the Poetry virtualenv cache or the specific project venvs and re-run `poetry install` inside the devShell (or outside it on the global).
+- Multiple versions are available via the pinned nixpkgs; you can always add explicit `python311`, `python312`, etc. to your personal profile overrides if you want several "global candidates" visible at once.
+
+This gives you the "set a global, toss it when needed, point at another via venv" workflow you liked from pyenv, but with fully reproducible pins and no extra version manager to maintain.
+
+### Poetry notes
+
+- These shells are intentionally **thin**. They do not try to manage your Python dependencies for you — Poetry does that.
+- Inside a `python313-poetry` shell you run normal `poetry install`, `poetry run`, `poetry shell`, etc.
+- Native wheels that need compilation (numpy, psycopg2, etc.) should just work because we include a C toolchain + pkg-config + openssl.
+- If a project needs extra system libs, add them temporarily in your local shell or propose a small addition to that specific devshell file.
+
+### When you might later want the poetry2nix path
+
+Poetry2nix gives you fully declarative, Nix-managed Python dependencies (no Poetry lockfile or venv at all). It is more reproducible across machines but has a steeper learning curve and does not port to non-Nix machines.
+
+We deliberately did **not** make it the default. A documented opt-in path exists if you ever have a project where the extra reproducibility is worth the trade-off. Ask if you want an example shell added.
+
+### Adding a new devShell
+
+See `devshells/README.md` (one file per shell + tiny composer, following your "one file per devshell" preference).
+
+After adding one, also consider adding a short `alias devfoo='dev the-new-shell'` in the zsh `initContent` block (in `modules/cli/programs.nix`) so it gets the same ergonomic treatment everywhere you deploy.
+
 ## Deferred Work (TODOs)
 
-- **Python / language devshells**: The old `devshells/` flake and the wrapper scripts in `packages.nix` are outdated and broken in places. Modernizing and consolidating them into the main flake is tracked as future work.
 - **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.
 - **Pure Nix Neovim configuration (optional)**: The current Neovim setup sources the entire `dotfiles.nvim` repo via `xdg.configFile."nvim"`. A full conversion to declarative `programs.neovim` (plugins, treesitter grammars, etc.) is possible but would be significant effort because the config is built on lazy.nvim. This is tracked as an **optional low-priority future item**.
 - **NixOS module integration**: Support using this configuration via Home Manager as a NixOS module (instead of standalone `home-manager switch`). This would allow managing system + user configuration together with a single `nixos-rebuild switch`.
 
-The legacy scripts have deprecation headers and should not be used for new setups.
+Python / language devshells modernization is **complete** (see `devshells/PLAN.md` and the section above).
+
+The legacy wrapper scripts have been removed and the old `devshells/` flake has been deleted.
 
 ## Verification
 

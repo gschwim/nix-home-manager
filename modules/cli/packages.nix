@@ -15,16 +15,6 @@
     (pkgs.writeShellScriptBin "vget" ''
       yt-dlp --cookies-from-browser chrome $*
     '')
-    ### for dev environments flake
-    (pkgs.writeShellScriptBin "python39-dev" ''
-      nix develop ~/environments/python#python39-dev
-    '')
-    (pkgs.writeShellScriptBin "python311-dev" ''
-      nix develop ~/environments/python#python311-dev
-    '')
-    (pkgs.writeShellScriptBin "python313-dev" ''
-      nix develop ~/environments/python#python313-dev
-    '')
 
     # CLI / TUI analogues for desktop apps (networking + system engineering focus)
     # These live in the headless profile for parity without GUI dependencies.
