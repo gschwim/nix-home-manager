@@ -53,6 +53,18 @@
           ];
         };
 
+        # Linux with desktop/GUI apps (use this when you have GNOME, KDE, etc.)
+        linux-x86-desktop = mkHome {
+          nixpkgs' = nixpkgs-25-11;
+          home-manager' = home-manager-25-11;
+          system = "x86_64-linux";
+          username = "schwim";
+          modules = [
+            ./hosts/linux.nix
+            ./hosts/linux-desktop.nix
+          ];
+        };
+
         # Intel macOS pinned to last supported release (26.05)
         darwin-intel = mkHome {
           nixpkgs' = nixpkgs-26-05-darwin;

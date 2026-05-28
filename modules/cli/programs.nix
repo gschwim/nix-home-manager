@@ -228,6 +228,7 @@ in
       # options = {};
     };
     btop = { enable = true; };
+    htop = { enable = true; };
     direnv = {
       enable = true;
       enableZshIntegration = true;
