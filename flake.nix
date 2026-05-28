@@ -55,7 +55,7 @@
           system = "x86_64-linux";
           username = "schwim";
           modules = [
-            ./hosts/linux.nix
+            ./targets/linux.nix
           ];
         };
 
@@ -66,7 +66,18 @@
           system = "x86_64-linux";
           username = "schwim";
           modules = [
-            ./hosts/linux-desktop.nix
+            ./targets/linux-desktop.nix
+          ];
+        };
+
+        # Real machine: pleiades (imports linux-desktop target + host-specific overrides)
+        pleiades = mkHome {
+          nixpkgs' = nixpkgs-25-11;
+          home-manager' = home-manager-25-11;
+          system = "x86_64-linux";
+          username = "schwim";
+          modules = [
+            ./hosts/pleiades.nix
           ];
         };
 
@@ -85,7 +96,7 @@
           system = "x86_64-darwin";
           username = "schwim";
           modules = [
-            ./hosts/osx.nix
+            ./targets/osx.nix
           ];
         };
       };

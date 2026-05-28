@@ -9,7 +9,7 @@
   # Example usage in flake.nix:
   #   linux-x86 = mkHome {
   #     ...
-  #     modules = [ ./hosts/linux.nix ];
+  #     modules = [ ./targets/linux.nix ];
   #   };
 
   home.packages = with pkgs; [

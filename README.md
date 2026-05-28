@@ -20,7 +20,7 @@ Personal Home Manager configuration using flakes. Designed to work cleanly acros
 ```bash
 cd ~/src/nix-home-manager
 
-# Daily driver (includes extras from hosts/osx.nix)
+# Daily driver (includes extras from targets/osx.nix)
 home-manager switch --flake .#osx-intel
 
 # Minimal version
@@ -47,9 +47,13 @@ modules/cli/              # The actual configuration you care about
 ├── packages.nix
 ├── programs.nix
 └── variables.nix         # Large git alias collection + starship config
+targets/
+├── linux.nix             # Base Linux target profile
+├── linux-desktop.nix     # Linux + desktop environment target
+└── osx.nix               # macOS target profile
+
 hosts/
-├── linux.nix             # Base Linux host (import for Ubuntu/NixOS machines)
-└── osx.nix               # Extras for the macOS daily driver
+└── (real machine configs go here, e.g. pleiades.nix)
 devshells/                # Legacy Python environments (see TODOs below)
 ```
 
@@ -58,7 +62,7 @@ devshells/                # Legacy Python environments (see TODOs below)
 Because everything is now parameterized:
 
 1. In `flake.nix`, add or modify a `homeConfiguration` and supply the correct `username`.
-2. Optionally import or extend a host module from `hosts/`.
+2. Optionally import or extend a target from `targets/` (or a full host config from `hosts/`).
 3. Run `home-manager switch --flake .#your-config`.
 
 Example for a new Linux user "alice":
@@ -69,7 +73,7 @@ alice-laptop = mkHome {
   home-manager' = home-manager-25-11;
   system = "x86_64-linux";
   username = "alice";
-  modules = [ ./hosts/linux.nix ];
+  modules = [ ./targets/linux.nix ];
 };
 ```
 

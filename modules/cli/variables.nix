@@ -33,6 +33,7 @@
     ls = "eza -l";
     ll = "eza -l";
     la = "eza -a";
+    tree = "eza --tree --color=always --group-directories-first";
     history = "history -f";
     ga = "git add";
     gaa = "git add --all";
