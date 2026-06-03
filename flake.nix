@@ -25,9 +25,12 @@
       url = "github:gschwim/dotfiles.nvim";
       flake = false;
     };
+
+    # Official xAI Grok Build CLI (TUI coding agent) - maintained binary wrapper
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = { self, nixpkgs-25-11, nixpkgs-26-05-darwin, home-manager-25-11, home-manager-26-05, dotfiles-nvim, ... }@inputs:
+  outputs = { self, nixpkgs-25-11, nixpkgs-26-05-darwin, home-manager-25-11, home-manager-26-05, dotfiles-nvim, llm-agents, ... }@inputs:
     let
       mkHome = { nixpkgs', home-manager', system, username, modules ? [] }:
         home-manager'.lib.homeManagerConfiguration {
@@ -41,6 +44,7 @@
           extraSpecialArgs = {
             inherit username;
             inherit dotfiles-nvim;
+            inherit llm-agents;
           };
           modules = modules ++ [
             ./home.nix

@@ -217,6 +217,20 @@ Python / language devshells modernization is **complete** (see `devshells/PLAN.m
 
 The legacy wrapper scripts have been removed and the old `devshells/` flake has been deleted.
 
+## Grok Build CLI (xAI)
+
+The official xAI Grok Build CLI (`grok` command) is installed declaratively for all hosts using the community-maintained package from `github:numtide/llm-agents.nix`.
+
+After a `home-manager switch`, the `grok` command is available with no manual PATH changes required.
+
+**Updating**
+```bash
+nix flake update llm-agents
+home-manager switch --flake .#<your-host>
+```
+
+See `modules/cli/grok-cli.nix` for details and the future TODO list.
+
 ## Verification
 
 After changes:
