@@ -207,6 +207,21 @@ See `devshells/README.md` (one file per shell + tiny composer, following your "o
 
 After adding one, also consider adding a short `alias devfoo='dev the-new-shell'` in the zsh `initContent` block (in `modules/cli/programs.nix`) so it gets the same ergonomic treatment everywhere you deploy.
 
+## Personal Update Notifications (Maintainer Only)
+
+A background checker for the maintainer's two personal repos (nix-home-manager and nixos-configs, both under ~/src) is included.
+
+- Automatically clones the repo if the local dir is missing (new system / fresh install).
+- Background git fetch (rate limited ~1h, non-blocking).
+- Prints a one-time notification per shell if the remote has new commits.
+- Uses the generic `check-repo-updates` script (POSIX, reusable; also manually runnable as `hm-check-updates`).
+- Vars: NIX_HOME_MANAGER_FLAKE and NIXOS_CONFIGS_DIR (set in sessionVariables).
+- Disable entirely: `NIX_HM_UPDATE_CHECK_INTERVAL=0` or remove the PERSONAL block in `modules/cli/programs.nix` initContent + the home.file entry for the script.
+
+**This is personal-only for the maintainer's (gschwim) setup and machines.** If you forked this repo: delete the PERSONAL block and the home.file for check-repo-updates. You are on your own for similar functionality. It is not part of the reusable configuration.
+
+See `modules/personal/check-repo-updates` (the script) and the zsh initContent for implementation.
+
 ## Deferred Work (TODOs)
 
 - **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.

@@ -24,6 +24,13 @@
     "$HOME/.local/bin"
   ];
 
+  # Personal repo update checker script (for gschwim's nix-home-manager and nixos-configs only).
+  # This is maintainer-specific; forks should remove this block.
+  home.file.".local/bin/check-repo-updates" = {
+    source = ./modules/personal/check-repo-updates;
+    executable = true;
+  };
+
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
@@ -71,6 +78,9 @@
     # EDITOR = "emacs";
     ZSH_AUTOSUGGEST_MANUAL_REBIND="True";
     SHELL = "${pkgs.zsh}/bin/zsh";
+    # Paths for personal repo update checker (maintainer only).
+    NIX_HOME_MANAGER_FLAKE = "$HOME/src/nix-home-manager";
+    NIXOS_CONFIGS_DIR = "$HOME/src/nixos-configs";
   };
 
   # Bring in the full Neovim configuration from the external dotfiles.nvim repo.

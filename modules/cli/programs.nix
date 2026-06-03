@@ -86,6 +86,62 @@ in
         #   devrust
         #   py313 --command poetry --version
 
+        # === PERSONAL-ONLY: nix-home-manager + nixos-configs UPDATE CHECKER ===
+        # This entire block is ONLY for the maintainer's (gschwim) personal machines and use.
+        # If you forked this repo: DELETE from here to the "END PERSONAL-ONLY BLOCK" comment.
+        # Other users/forks: you are on your own for repo update notifications.
+        # Features:
+        # - Background (non-blocking) checks for the two personal repos under ~/src.
+        # - Auto-clones the repo(s) if the dir is missing (e.g. new system install).
+        # - Rate limited (~1h).
+        # - Notifies once per shell via message if updates pending.
+        # - Uses existing NIX_HOME_MANAGER_FLAKE; adds NIXOS_CONFIGS_DIR.
+        # - Generic checker script allows future use from bash etc.
+        # Disable: NIX_HM_UPDATE_CHECK_INTERVAL=0 or remove this block.
+        : "''${NIX_HOME_MANAGER_FLAKE:=$HOME/src/nix-home-manager}"
+        : "''${NIXOS_CONFIGS_DIR:=$HOME/src/nixos-configs}"
+
+        _personal_check_repos() {
+          command -v check-repo-updates >/dev/null 2>&1 || return
+          check-repo-updates "https://github.com/gschwim/nix-home-manager.git" "$NIX_HOME_MANAGER_FLAKE" &
+          check-repo-updates "https://github.com/gschwim/nixos-configs.git" "$NIXOS_CONFIGS_DIR" &
+        }
+
+        _personal_show_repo_updates() {
+          local cache_root="''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates"
+          local msg=""
+          if [ -f "$cache_root/nix-home-manager/status" ]; then
+            local c=$(cat "$cache_root/nix-home-manager/status")
+            msg="''${msg}%F{yellow}⚠ nix-home-manager has $c new commit(s) on remote.%f "
+          fi
+          if [ -f "$cache_root/nixos-configs/status" ]; then
+            local c=$(cat "$cache_root/nixos-configs/status")
+            msg="''${msg}%F{yellow}⚠ nixos-configs has $c new commit(s) on remote.%f "
+          fi
+          if [ -n "$msg" ]; then
+            print -P "$msg cd \$dir && git pull && appropriate switch/rebuild."
+            rm -f "$cache_root"/*/status 2>/dev/null || true
+          fi
+        }
+
+        # Trigger background checks (rate limited inside the script)
+        _personal_check_repos
+
+        # Show notifications on prompt if pending
+        autoload -Uz add-zsh-hook
+        add-zsh-hook precmd _personal_show_repo_updates
+
+        # Manual command
+        nix-home-manager-check-updates() {
+          command -v check-repo-updates >/dev/null 2>&1 || { echo "check-repo-updates not found"; return 1; }
+          check-repo-updates "https://github.com/gschwim/nix-home-manager.git" "$NIX_HOME_MANAGER_FLAKE" 0
+          check-repo-updates "https://github.com/gschwim/nixos-configs.git" "$NIXOS_CONFIGS_DIR" 0
+          _personal_show_repo_updates
+        }
+        alias hm-check-updates='nix-home-manager-check-updates'
+
+        # END PERSONAL-ONLY BLOCK
+
         # local overrides
         if [ -e ~/.config/zsh/zshrc_local ]; then
           source ~/.config/zsh/zshrc_local
