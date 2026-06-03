@@ -1,0 +1,63 @@
+#!/bin/sh
+# check-repo-updates <git_url> <local_path> [interval_seconds]
+# Generic, shell-agnostic repo update checker.
+# - Clones if local_path missing/not a git repo (for new systems).
+# - Rate limited by timestamp.
+# - Writes behind count to status file if updates.
+# - Silent on errors.
+set -eu
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <git_url> <local_path> [interval]" >&2
+  exit 1
+fi
+
+GIT_URL="$1"
+LOCAL_PATH="$2"
+INTERVAL="${3:-3600}"
+
+CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates"
+SAFE_NAME=$(basename "$LOCAL_PATH" | tr -c '[:alnum:]._-' '_')
+CACHE_DIR="$CACHE_ROOT/$SAFE_NAME"
+mkdir -p "$CACHE_DIR"
+
+LAST_CHECK="$CACHE_DIR/last-check"
+STATUS_FILE="$CACHE_DIR/status"
+
+NOW=$(date +%s)
+if [ -f "$LAST_CHECK" ]; then
+  LAST=$(cat "$LAST_CHECK" 2>/dev/null || echo 0)
+  if [ $((NOW - LAST)) -lt "$INTERVAL" ]; then
+    exit 0
+  fi
+fi
+echo "$NOW" > "$LAST_CHECK"
+
+if [ ! -d "$LOCAL_PATH/.git" ]; then
+  echo "check-repo-updates: cloning $GIT_URL into $LOCAL_PATH (first time / missing)" >&2
+  mkdir -p "$(dirname "$LOCAL_PATH")" 2>/dev/null || true
+  if git clone --quiet "$GIT_URL" "$LOCAL_PATH" 2>/dev/null; then
+    echo "check-repo-updates: clone done for $LOCAL_PATH" >&2
+    rm -f "$STATUS_FILE"
+    exit 0
+  else
+    echo "check-repo-updates: clone failed for $LOCAL_PATH" >&2
+    exit 0
+  fi
+fi
+
+cd "$LOCAL_PATH" || exit 0
+git fetch --quiet origin 2>/dev/null || exit 0
+
+UPSTREAM_REF=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo "origin/main")
+UPSTREAM=${UPSTREAM_REF#origin/}
+if ! git rev-parse --verify "origin/$UPSTREAM" >/dev/null 2>&1; then
+  UPSTREAM="master"
+fi
+
+BEHIND=$(git rev-list --count "HEAD..origin/$UPSTREAM" 2>/dev/null || echo 0)
+if [ "$BEHIND" -gt 0 ]; then
+  echo "$BEHIND" > "$STATUS_FILE"
+else
+  rm -f "$STATUS_FILE"
+fi
