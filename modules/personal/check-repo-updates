@@ -17,7 +17,7 @@ LOCAL_PATH="$2"
 INTERVAL="${3:-3600}"
 
 CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates"
-SAFE_NAME=$(basename "$LOCAL_PATH" | tr -c '[:alnum:]._-' '_')
+SAFE_NAME=$(basename "$LOCAL_PATH" | sed 's/[^A-Za-z0-9._-]/_/g')
 CACHE_DIR="$CACHE_ROOT/$SAFE_NAME"
 mkdir -p "$CACHE_DIR"
 
