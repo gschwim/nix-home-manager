@@ -213,23 +213,25 @@ A background checker for the maintainer's two personal repos (nix-home-manager a
 
 New mechanism (no shell background jobs):
 - The `check-repo-updates` POSIX script lives in `~/.local/bin`.
-- On Linux/NixOS: a systemd user timer (`check-nix-repos.timer`, hourly + persistent + randomized delay) runs the script for both repos externally. It does git fetch (or clone if dir missing on new systems) and writes status (commit count) to `~/.cache/repo-updates/*/status`.
-- On other systems: set up equivalent via cron (see module for one-liners) or launchd.
-- **Signal via Starship prompt**: A custom module shows "🔄HM" and/or "🔄NIX" (yellow) in the prompt if the corresponding status file exists. Completely passive and instant (just file test).
+- On Linux/NixOS (including headless/CLI-only): a systemd user timer (`check-nix-repos.timer`, hourly + Persistent + RandomizedDelay) + a oneshot on default.target runs the script for both repos externally. It does git fetch (or clone if dir missing on new systems) and writes status (commit count) to `$XDG_CACHE_HOME/repo-updates/*/status` (falls back to `~/.cache`).
+- On macOS/Darwin: equivalent launchd user agent (`com.user.check-nix-repos`) with RunAtLoad + StartInterval=3600. Home Manager handles plist deployment to ~/Library/LaunchAgents and launchctl bootstrap.
+- On other Linux (Ubuntu/Mint etc without systemd --user): see cron examples inside `modules/personal/update-checker.nix`.
+- **Signal via Starship prompt**: A custom module shows "🔄HM" and/or "🔄NIX" (yellow) in the prompt if the corresponding status file exists. Completely passive and instant (just file test). Uses the same XDG-aware cache path as the script.
 - Manual: `hm-check-updates` forces an immediate check (interval=0) and updates status (prompt indicator will appear on next prompt).
 - Auto-clone: if the expected ~/src/... dir doesn't exist when checker runs, it clones the repo (with message).
 - Vars: `NIX_HOME_MANAGER_FLAKE` and `NIXOS_CONFIGS_DIR` (in sessionVariables).
-- Disable: `NIX_HM_UPDATE_CHECK_INTERVAL=0` or remove the personal bits (see below).
+- The checker prefers the nixpkgs git from your profile (via PATH injection in the units) so there are no Xcode license prompts on macOS.
+- Disable: remove the personal bits (see below). (There is no NIX_HM_UPDATE_CHECK_INTERVAL; the script always rate-limits internally.)
 
 **This is personal-only for the maintainer's (gschwim) setup.** The implementation is isolated with prominent "PERSONAL-ONLY ... DELETE FOR FORKS" comments. If you forked this repo: delete the import of `modules/personal/update-checker.nix` from `home.nix`, the PERSONAL block near the end of zsh `initContent` in `modules/cli/programs.nix`, the custom Starship module in `variables.nix`, and this README section. You are on your own.
 
 See:
 - `modules/personal/check-repo-updates` (script)
-- `modules/personal/update-checker.nix` (timer + home.file + systemd units)
+- `modules/personal/update-checker.nix` (systemd units + launchd.agents + home.file + PATH injection + cron examples)
 - PERSONAL block in `modules/cli/programs.nix`
 - Starship custom in `modules/cli/variables.nix`
 
-The previous shell-launched bg job approach has been removed. Checks happen via timer; shells only read status files for the prompt signal.
+The previous shell-launched bg job approach has been removed. Checks happen via external scheduler (systemd/launchd); shells only read status files for the prompt signal.
 
 ## Deferred Work (TODOs)
 

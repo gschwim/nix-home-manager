@@ -6,6 +6,7 @@
     pkgs.tlrc
     pkgs.wget
     pkgs.curl
+    pkgs.git
     pkgs.difftastic
     pkgs.python3
     pkgs.poetry

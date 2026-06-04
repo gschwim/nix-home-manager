@@ -27,15 +27,19 @@
     # See modules/personal/update-checker.nix and the PERSONAL block in programs.nix.
     # To see details: hm-check-updates
     custom.nix_repo_update = {
+      # Passive, instant prompt signal. Matches the exact path logic used by
+      # modules/personal/check-repo-updates (XDG_CACHE_HOME or fallback ~/.cache).
+      # The actual work is done by external systemd/launchd; we only do file tests here.
       command = ''
+        CACHE_ROOT="''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates"
         out=""
-        [ -f ~/.cache/repo-updates/nix-home-manager/status ] && out="''${out}HM "
-        [ -f ~/.cache/repo-updates/nixos-configs/status ] && out="''${out}NIX "
+        [ -f "$CACHE_ROOT/nix-home-manager/status" ] && out="''${out}HM "
+        [ -f "$CACHE_ROOT/nixos-configs/status" ] && out="''${out}NIX "
         echo "$out"
       '';
       format = "[🔄$output]($style) ";
       style = "yellow bold";
-      when = "test -f ~/.cache/repo-updates/nix-home-manager/status || test -f ~/.cache/repo-updates/nixos-configs/status";
+      when = ''test -f "''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates/nix-home-manager/status" || test -f "''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates/nixos-configs/status"'';
     };
   };
 

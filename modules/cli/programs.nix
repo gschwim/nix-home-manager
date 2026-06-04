@@ -93,16 +93,17 @@ in
         #
         # How it works now (per user request):
         # - No more background jobs launched from the shell.
-        # - A systemd user timer (on Linux) or cron/launchd (elsewhere) periodically
-        #   runs ~/.local/bin/check-repo-updates for the two repos.
-        # - The script updates status files in ~/.cache/repo-updates/*/status
-        #   (contains commit count if behind).
+        # - A systemd user timer (Linux/NixOS, including headless) or launchd agent
+        #   (macOS/Darwin) periodically runs ~/.local/bin/check-repo-updates for the two repos.
+        #   (See modules/personal/update-checker.nix for the units + cron examples for Ubuntu/Mint.)
+        # - The script updates status files in $XDG_CACHE_HOME/repo-updates/*/status (or ~/.cache)
+        #   (contains commit count if behind; cleaned when up-to-date).
         # - Starship custom module (below) shows a "🔄" indicator in the prompt
         #   if any status file exists. Purely passive signal.
         # - Manual trigger still works: hm-check-updates (forces check, updates status).
         # - Auto-clone: if ~/src/* missing, the script (when run) will clone.
         #
-        # The timer runs the checks externally. Shell only reads fast status files.
+        # The external scheduler (systemd/launchd) runs the checks. Shell only reads fast status files.
         : "''${NIX_HOME_MANAGER_FLAKE:=$HOME/src/nix-home-manager}"
         : "''${NIXOS_CONFIGS_DIR:=$HOME/src/nixos-configs}"
 
