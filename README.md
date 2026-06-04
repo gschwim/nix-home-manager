@@ -211,16 +211,25 @@ After adding one, also consider adding a short `alias devfoo='dev the-new-shell'
 
 A background checker for the maintainer's two personal repos (nix-home-manager and nixos-configs, both under ~/src) is included.
 
-- Automatically clones the repo if the local dir is missing (new system / fresh install).
-- Background git fetch (rate limited ~1h, non-blocking).
-- Prints a one-time notification per shell if the remote has new commits.
-- Uses the generic `check-repo-updates` script (POSIX, reusable; also manually runnable as `hm-check-updates`).
-- Vars: NIX_HOME_MANAGER_FLAKE and NIXOS_CONFIGS_DIR (set in sessionVariables).
-- Disable entirely: `NIX_HM_UPDATE_CHECK_INTERVAL=0` or remove the PERSONAL block in `modules/cli/programs.nix` initContent + the home.file entry for the script.
+New mechanism (no shell background jobs):
+- The `check-repo-updates` POSIX script lives in `~/.local/bin`.
+- On Linux/NixOS: a systemd user timer (`check-nix-repos.timer`, hourly + persistent + randomized delay) runs the script for both repos externally. It does git fetch (or clone if dir missing on new systems) and writes status (commit count) to `~/.cache/repo-updates/*/status`.
+- On other systems: set up equivalent via cron (see module for one-liners) or launchd.
+- **Signal via Starship prompt**: A custom module shows "🔄HM" and/or "🔄NIX" (yellow) in the prompt if the corresponding status file exists. Completely passive and instant (just file test).
+- Manual: `hm-check-updates` forces an immediate check (interval=0) and updates status (prompt indicator will appear on next prompt).
+- Auto-clone: if the expected ~/src/... dir doesn't exist when checker runs, it clones the repo (with message).
+- Vars: `NIX_HOME_MANAGER_FLAKE` and `NIXOS_CONFIGS_DIR` (in sessionVariables).
+- Disable: `NIX_HM_UPDATE_CHECK_INTERVAL=0` or remove the personal bits (see below).
 
-**This is personal-only for the maintainer's (gschwim) setup and machines.** If you forked this repo: delete the PERSONAL block and the home.file for check-repo-updates. You are on your own for similar functionality. It is not part of the reusable configuration.
+**This is personal-only for the maintainer's (gschwim) setup.** The implementation is isolated with prominent "PERSONAL-ONLY ... DELETE FOR FORKS" comments. If you forked this repo: delete the import of `modules/personal/update-checker.nix` from `home.nix`, the PERSONAL block near the end of zsh `initContent` in `modules/cli/programs.nix`, the custom Starship module in `variables.nix`, and this README section. You are on your own.
 
-See `modules/personal/check-repo-updates` (the script) and the zsh initContent for implementation.
+See:
+- `modules/personal/check-repo-updates` (script)
+- `modules/personal/update-checker.nix` (timer + home.file + systemd units)
+- PERSONAL block in `modules/cli/programs.nix`
+- Starship custom in `modules/cli/variables.nix`
+
+The previous shell-launched bg job approach has been removed. Checks happen via timer; shells only read status files for the prompt signal.
 
 ## Deferred Work (TODOs)
 

@@ -3,6 +3,9 @@
 {
   imports = [
     ./modules/cli/cli.nix
+    # Personal-only update checker (timer + script). Maintainer use only.
+    # Forks: remove this line (and the whole modules/personal/ bits if desired).
+    ./modules/personal/update-checker.nix
   ];
 
   # Username is supplied by the flake (see mkHome in flake.nix).
@@ -24,12 +27,7 @@
     "$HOME/.local/bin"
   ];
 
-  # Personal repo update checker script (for gschwim's nix-home-manager and nixos-configs only).
-  # This is maintainer-specific; forks should remove this block.
-  home.file.".local/bin/check-repo-updates" = {
-    source = ./modules/personal/check-repo-updates;
-    executable = true;
-  };
+  # (personal update checker imported above in the main imports list)
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release

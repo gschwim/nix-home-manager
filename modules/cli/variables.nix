@@ -20,6 +20,23 @@
       };
     # git_status.disabled = true;
     # python.disabled = true;
+
+    # Personal-only: indicator for pending updates to maintainer's repos.
+    # The actual checks are done by external timer (systemd user timer or cron).
+    # This just reads fast status files written by the checker script.
+    # See modules/personal/update-checker.nix and the PERSONAL block in programs.nix.
+    # To see details: hm-check-updates
+    custom.nix_repo_update = {
+      command = ''
+        out=""
+        [ -f ~/.cache/repo-updates/nix-home-manager/status ] && out="''${out}HM "
+        [ -f ~/.cache/repo-updates/nixos-configs/status ] && out="''${out}NIX "
+        echo "$out"
+      '';
+      format = "[🔄$output]($style) ";
+      style = "yellow bold";
+      when = "test -f ~/.cache/repo-updates/nix-home-manager/status || test -f ~/.cache/repo-updates/nixos-configs/status";
+    };
   };
 
   shellAliases = {
