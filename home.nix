@@ -40,6 +40,27 @@
   # Bumped to 25.11 to match the nixpkgs-25-11 pin used for Linux configurations.
   home.stateVersion = "25.11";
 
+  # Silence the post-switch message:
+  #   "There are N unread and relevant news items.
+  #    Read them by running the command "home-manager news"."
+  #
+  # This message comes from Home Manager's activation when using the standalone
+  # `home-manager` CLI. It is mainly useful for people tracking the unstable
+  # channel with the classic ~/.config/home-manager/home.nix setup.
+  #
+  # We use flakes + pinned home-manager releases (nixpkgs-25.11 + matching
+  # home-manager/release-25.11 for Linux, 26.05-darwin for Intel macOS), so
+  # the news are rarely relevant and the plain `home-manager news` command
+  # doesn't work (it looks for a legacy config file and prints the error you saw).
+  #
+  # To view news for a specific flake target when you actually want them:
+  #   nix run home-manager/release-25.11 -- news --flake .#linux-x86
+  #   nix run home-manager/release-26.05 -- news --flake .#osx-intel
+  #
+  # Or after a switch you can try:
+  #   home-manager news --flake .#linux-x86
+  news.display = "silent";
+
   #
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.

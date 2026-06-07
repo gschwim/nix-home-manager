@@ -35,6 +35,22 @@ cd ~/src/nix-home-manager
 home-manager switch --flake .#linux-x86
 ```
 
+After a switch you may see various activation messages (font cache, bat cache rebuild, etc.). 
+
+The "There are N unread and relevant news items. Read them by running `home-manager news`" notice is deliberately silenced in this flake setup (see `news.display = "silent";` in `home.nix`). Those news are primarily useful when following the Home Manager unstable channel with the classic `~/.config/home-manager/home.nix` layout. With pinned flake inputs they are rarely relevant.
+
+If you do want to read the news for a target:
+
+```bash
+# Linux (25.11)
+nix run home-manager/release-25.11 -- news --flake .#linux-x86
+
+# macOS Intel (26.05)
+nix run home-manager/release-26.05 -- news --flake .#osx-intel
+```
+
+The bare `home-manager news` command will not work (it looks for a legacy config file).
+
 The configuration now works for **any username** without editing source files. When defining new machines, just pass the desired `username` in the flake.
 
 ## Repository Structure
