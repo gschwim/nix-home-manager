@@ -4,12 +4,26 @@ let
   # Shared wrapper used by both the systemd units (Linux) and launchd agents (Darwin).
   # Runs the two repo checks using the deployed POSIX script.
   # We use absolute paths so it works even with minimal env from the scheduler.
+  #
+  # On fresh installs there can be a race between this service starting (via
+  # default.target or RunAtLoad) and home-manager finishing its activation
+  # (which creates the ~/.local/bin/check-repo-updates via home.file).
+  # We therefore guard the call so we exit cleanly (0) instead of failing the
+  # unit with status 127 ("command not found").
   checkNixReposScript = pkgs.writeShellScript "check-nix-repos" ''
     set -eu
-    ${config.home.homeDirectory}/.local/bin/check-repo-updates \
+
+    CHECKER="${config.home.homeDirectory}/.local/bin/check-repo-updates"
+
+    if [ ! -x "$CHECKER" ]; then
+      echo "check-repo-updates not yet deployed (Home Manager activation probably still in progress on first switch/login). Skipping this run." >&2
+      exit 0
+    fi
+
+    "$CHECKER" \
       https://github.com/gschwim/nix-home-manager.git \
       ${config.home.homeDirectory}/src/nix-home-manager
-    ${config.home.homeDirectory}/.local/bin/check-repo-updates \
+    "$CHECKER" \
       https://github.com/gschwim/nixos-configs.git \
       ${config.home.homeDirectory}/src/nixos-configs
   '';
@@ -32,6 +46,12 @@ in
   # - Auto-clones the repos under ~/src on first run if missing (new machine).
   # - Manual override still available via hm-check-updates alias.
   # - Ensures nix-provided git is used (via PATH) so no Xcode license nag on Darwin.
+  #
+  # Note on fresh installs: there can be a small race between user services
+  # starting (WantedBy default.target / RunAtLoad) and the Home Manager
+  # activation finishing (home.file creation of ~/.local/bin/check-repo-updates).
+  # Both the generated wrappers and the on-login unit have guards so this
+  # results in a clean skip rather than a failed unit (status 127).
   # =====================================================================
 
   # Deploy the generic POSIX checker script (cross-platform).
@@ -46,6 +66,8 @@ in
   systemd.user.services."check-nix-repos" = lib.mkIf pkgs.stdenv.isLinux {
     Unit = {
       Description = "Check for updates in personal Nix repos (nix-home-manager, nixos-configs)";
+      After = [ "home-manager-session.target" ];
+      ConditionPathExists = "${config.home.homeDirectory}/.local/bin/check-repo-updates";
     };
     Service = {
       Type = "oneshot";
@@ -74,9 +96,17 @@ in
 
   # One-shot on login (or boot for headless). Works on CLI-only servers
   # (no graphical-session dep, unlike some desktop-oriented units).
+  #
+  # We add After + ConditionPathExists to reduce races on fresh Home Manager
+  # activations (the home.file that creates ~/.local/bin/check-repo-updates
+  # must exist before we try to run). The script wrapper below is also
+  # defensive and will exit 0 (instead of failing the unit) if the checker
+  # isn't present yet.
   systemd.user.services."check-nix-repos-on-login" = lib.mkIf pkgs.stdenv.isLinux {
     Unit = {
       Description = "One-time check for personal Nix repos on login/boot";
+      After = [ "home-manager-session.target" ];
+      ConditionPathExists = "${config.home.homeDirectory}/.local/bin/check-repo-updates";
     };
     Service = {
       Type = "oneshot";
