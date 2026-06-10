@@ -15,13 +15,14 @@ set -euo pipefail
 
 print_usage() {
   cat <<'EOF'
-Usage: homectl {switch|info|generations|target} [args...]
+Usage: homectl {switch|info|generations|target|pull} [args...]
 
   switch [...]   Deploy latest from the home-manager flake (NIX_HOME_MANAGER_CONFIGS_DIR) using auto-detected target
                  (passes extra args to home-manager switch)
   info           Show current/detected flake dir, target, host hints, last switched
   generations    List generations (wraps home-manager generations)
   target         Print just the auto-detected target (or error + list)
+  pull           git pull origin master in the nix-home-manager repo (NIX_HOME_MANAGER_CONFIGS_DIR)
 
 Detects using /etc/nixos-host-info (if present) + hostname + uname.
 Highest priority: explicit flake_target (or FLAKE_TARGET) from host-info if it matches a target.
@@ -167,6 +168,10 @@ case "$cmd" in
       exit 1
     fi
     echo "$target"
+    ;;
+  pull)
+    echo "homectl: git pull origin master in $FLAKE_DIR"
+    (cd "$FLAKE_DIR" && git pull origin master "$@")
     ;;
   *)
     echo "homectl: unknown command '$cmd'" >&2
