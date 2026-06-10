@@ -165,7 +165,7 @@ in
         }
       ];
       # change from the default prefix
-      prefix = "C-a";
+      prefix = "C-b";
 
       # vi keybindings, not emacs
       keyMode = "vi";
