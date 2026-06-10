@@ -133,6 +133,29 @@ in
     };
   };
 
+  # Note on visibility:
+  # These are oneshot services (they run and then become "inactive (dead)").
+  # The default `systemctl --user status` (no unit) only shows a high-level
+  # summary of the user manager ("pleiades" in your case) + a few key slices
+  # and any currently failing units. It does **not** enumerate all 200+ units.
+  # Healthy oneshot services and their timers will not appear in the bare
+  # `systemctl --user status` output.
+  #
+  # Correct ways to inspect (add these to your personal notes / README):
+  #   systemctl --user list-units | grep -E 'check-nix|repo-updates'
+  #   systemctl --user status check-nix-repos.service
+  #   systemctl --user status check-nix-repos-on-login.service
+  #   systemctl --user status check-nix-repos.timer
+  #   systemctl --user list-timers | grep check-nix
+  #   journalctl --user -u check-nix-repos* --since "2 hours ago"
+  #
+  # The timer unit ("check-nix-repos.timer") is what actually schedules the
+  # periodic runs. The on-login service is a one-shot that fires early in the
+  # session (WantedBy default.target) and then goes inactive.
+  #
+  # Because we force the wrapper to always exit 0 (and added SuccessExitStatus),
+  # these units will never put your user session into "degraded" state again.
+
   # ------------------------------------------------------------------
   # Darwin / macOS: launchd user agents (equivalent to the systemd timers)
   # ------------------------------------------------------------------
