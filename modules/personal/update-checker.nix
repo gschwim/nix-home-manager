@@ -132,6 +132,8 @@ in
   # "Unrecognized target specifier" or "I/O error (code 5)" if a previous
   # generation's agent is still loaded under the same label. We do a
   # best-effort pre-cleanup right before setupLaunchAgents.
+  #
+  # The commands use the modern separate domain + label form.
   home.activation.unloadStaleCheckNixReposAgent = lib.mkIf pkgs.stdenv.isDarwin (
     lib.hm.dag.entryBefore ["setupLaunchAgents"] ''
       echo "Cleaning up any stale com.user.check-nix-repos launch agent (best effort)..."
