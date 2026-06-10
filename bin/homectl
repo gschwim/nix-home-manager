@@ -24,8 +24,9 @@ Usage: homectl {switch|info|generations|target} [args...]
   target         Print just the auto-detected target (or error + list)
 
 Detects using /etc/nixos-host-info (if present) + hostname + uname.
-Prefers exact hostname match in homeConfigurations.
-Falls back to desktop/role logic (linux-x86-desktop / linux-x86 or darwin equivalents).
+Highest priority: explicit flake_target (or FLAKE_TARGET) from host-info if it matches a target.
+Then exact hostname match in homeConfigurations.
+Falls back to desktop/role + OS logic (linux-x86-desktop / linux-x86 or darwin equivalents).
 EOF
 }
 
@@ -43,15 +44,18 @@ HOST_INFO_FILE="${HOST_INFO_FILE:-/etc/nixos-host-info}"
 hostname=""
 desktop_environment="none"
 role=""
+flake_target=""
 if [[ -f "$HOST_INFO_FILE" ]]; then
   while IFS='=' read -r key value || [[ -n "$key" ]]; do
     key="${key// /}"
+    key="${key,,}"  # lowercase for case-insensitive matching (nixos-configs side often uses UPPER_SNAKE_CASE)
     value="${value// /}"
     value="${value//\"/}"  # strip quotes if any
     case "$key" in
       hostname) hostname="$value" ;;
-      desktop_environment) desktop_environment="$value" ;;
+      desktop_environment|desktopenvironment) desktop_environment="$value" ;;
       role) role="$value" ;;
+      flake_target|flaketarget) flake_target="$value" ;;
     esac
   done < "$HOST_INFO_FILE"
 fi
@@ -81,8 +85,13 @@ list_targets() {
     --no-update-lock-file 2>/dev/null | tr -d '[]"' | tr ',' '\n' | sed 's/ //g' | sort
 }
 
+# Explicit FLAKE_TARGET (or flake_target) from /etc/nixos-host-info takes highest priority.
+# This allows the nixos-configs (or equivalent) side to declare the exact homeConfiguration
+# attr to use for this machine.
+if [[ -n "$flake_target" ]] && has_target "$flake_target"; then
+  target="$flake_target"
 # 1. Hostname match (cross platform, most specific)
-if has_target "$hostname"; then
+elif has_target "$hostname"; then
   target="$hostname"
 elif $is_darwin; then
   # On darwin, default to osx-intel (fuller, like desktop) if any desktop hint,
@@ -117,6 +126,7 @@ case "$cmd" in
     if [[ -z "$target" ]]; then
       echo "homectl: no matching home-manager target found" >&2
       echo "  hostname=$hostname" >&2
+      echo "  flake_target=${flake_target:-}" >&2
       echo "  desktop_environment=$desktop_environment" >&2
       echo "  role=$role" >&2
       echo "  os=$(uname -s)" >&2
@@ -125,7 +135,7 @@ case "$cmd" in
       list_targets >&2
       exit 1
     fi
-    echo "homectl: using target '$target' (from hostname match or role/desktop + os logic)"
+    echo "homectl: using target '$target' (from flake_target / hostname / role/desktop + os logic)"
     mkdir -p "$STATE_DIR"
     echo "$target" > "$STATE_TARGET"
     exec home-manager switch --flake "$FLAKE_DIR#$target" "$@"
@@ -134,6 +144,7 @@ case "$cmd" in
     echo "flake_dir: $FLAKE_DIR"
     echo "detected_target: ${target:-<none>}"
     echo "hostname: $hostname"
+    echo "flake_target: ${flake_target:-}"
     echo "desktop_environment: $desktop_environment"
     echo "role: $role"
     echo "os: $(uname -s)"
