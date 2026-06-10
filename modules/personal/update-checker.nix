@@ -20,12 +20,20 @@ let
       exit 0
     fi
 
+    # Always exit 0 from the wrapper so the oneshot services never put the
+    # user session into "degraded" state. The inner script is already
+    # defensive and logs its own errors.
     "$CHECKER" \
       https://github.com/gschwim/nix-home-manager.git \
-      ${config.home.homeDirectory}/src/nix-home-manager
+      ${config.home.homeDirectory}/src/nix-home-manager \
+      || echo "first repo check exited non-zero (see logs); continuing" >&2
+
     "$CHECKER" \
       https://github.com/gschwim/nixos-configs.git \
-      ${config.home.homeDirectory}/src/nixos-configs
+      ${config.home.homeDirectory}/src/nixos-configs \
+      || echo "second repo check exited non-zero (see logs); continuing" >&2
+
+    exit 0
   '';
 in
 {
@@ -77,6 +85,10 @@ in
       Environment = [
         "PATH=${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin"
       ];
+      # These are best-effort maintenance tasks. Make sure they never
+      # leave the user session in "degraded" state even if something
+      # transient goes wrong inside the script.
+      SuccessExitStatus = "0";
     };
   };
 
@@ -114,6 +126,7 @@ in
       Environment = [
         "PATH=${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin"
       ];
+      SuccessExitStatus = "0";
     };
     Install = {
       WantedBy = [ "default.target" ];
