@@ -107,6 +107,23 @@ To make Zsh your actual default shell:
 
 We also set `SHELL` and configure Ghostty + Wezterm (on desktop profiles) to prefer Zsh.
 
+## Environment Variables for Helper Scripts & Local Customizations
+
+Home Manager sets the following variables pointing at your source checkouts (available in any shell it manages via `home.sessionVariables`):
+
+- `NIX_HOME_MANAGER_CONFIGS_DIR` — the directory containing this home-manager configuration (`~/src/nix-home-manager`)
+- `NIXOS_CONFIGS_DIR` — the directory containing your nixos-configs (`~/src/nixos-configs`)
+
+`NIX_HOME_MANAGER_FLAKE` is also provided for the dev helpers (the short `py313` etc. aliases and `dev()` function) that use it as a flake reference.
+
+For machine-local additions, overrides (including the variables above), or glue for helper scripts, use the generic local-only file:
+
+```sh
+[[ -f ~/.localrc ]] && source ~/.localrc
+```
+
+Home Manager seeds `~/.localrc` once during the first activation (it contains only a short header explaining that it is user-owned). After that the file is 100% yours — future `home-manager switch` runs will never modify or overwrite it. Source the same file at the end of your `.bashrc`, `config.fish`, or any other shell rc for consistent behavior across shells.
+
 ## Development Environments
 
 This repo now provides **project-specific devShells** via `nix develop` / `nix shell` / direnv while preserving a reliable daily "global" Python experience in your normal CLI profile.
@@ -251,6 +268,7 @@ The previous shell-launched bg job approach has been removed. Checks happen via 
 
 ## Deferred Work (TODOs)
 
+- **NixOS host target detection for home-manager deployment**: A convenience script (e.g. `bin/hm-deploy` or similar, possibly exposed via `nix run`) that detects which NixOS flake target (e.g. `.#pleiades`, `.#iris`) was used to build the current system — preferably via an explicit marker file such as `/etc/nixos-flake-target` (or `/etc/nixos-flake`) written during the nixos-configs build, falling back to `hostname` — and then selects/maps it to the appropriate home-manager target in this flake using a clear, editable set of rules. The goal is to allow a simple one-command deploy like `./bin/hm-deploy` (or `hm-deploy` once in PATH) that does the right `home-manager switch --flake $NIX_HOME_MANAGER_FLAKE#<target>` without the user having to remember per-machine mappings. See the detailed plan notes for implementation ideas, bootstrap considerations, and the required one-liner addition on the nixos-configs side.
 - **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.
 - **Pure Nix Neovim configuration (optional)**: The current Neovim setup sources the entire `dotfiles.nvim` repo via `xdg.configFile."nvim"`. A full conversion to declarative `programs.neovim` (plugins, treesitter grammars, etc.) is possible but would be significant effort because the config is built on lazy.nvim. This is tracked as an **optional low-priority future item**.
 - **NixOS module integration**: Support using this configuration via Home Manager as a NixOS module (instead of standalone `home-manager switch`). This would allow managing system + user configuration together with a single `nixos-rebuild switch`.

@@ -97,8 +97,14 @@
     # EDITOR = "emacs";
     ZSH_AUTOSUGGEST_MANUAL_REBIND="True";
     SHELL = "${pkgs.zsh}/bin/zsh";
-    # Paths for personal repo update checker (maintainer only).
+
+    # Canonical locations of the two main source repositories.
+    # Helper scripts (deployment tools, update checkers, custom automation, etc.)
+    # should prefer these over hard-coded paths.
+    # They are provided via home.sessionVariables so they are available in
+    # any shell that Home Manager manages (zsh today, bash/fish/etc. in the future).
     NIX_HOME_MANAGER_FLAKE = "$HOME/src/nix-home-manager";
+    NIX_HOME_MANAGER_CONFIGS_DIR = "$HOME/src/nix-home-manager";
     NIXOS_CONFIGS_DIR = "$HOME/src/nixos-configs";
   };
 
@@ -112,4 +118,14 @@
     # over any previously generated or manual files in ~/.config/nvim
     force = true;
   };
+
+  # Tiny convenience for the two (now three) path variables that helper scripts
+  # (the deployment script from the TODO list, custom automation, etc.) rely on.
+  home.packages = [
+    (pkgs.writeShellScriptBin "hm-paths" ''
+      echo "NIX_HOME_MANAGER_FLAKE=$NIX_HOME_MANAGER_FLAKE"
+      echo "NIX_HOME_MANAGER_CONFIGS_DIR=$NIX_HOME_MANAGER_CONFIGS_DIR"
+      echo "NIXOS_CONFIGS_DIR=$NIXOS_CONFIGS_DIR"
+    '')
+  ];
 }

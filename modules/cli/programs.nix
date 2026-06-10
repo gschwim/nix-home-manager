@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let 
 
   # shellAliases = import ./shell.nix { inherit shellAliases; }; 
@@ -70,6 +70,7 @@ in
         # The functions below work even without the registry (they resolve the path).
         # Set NIX_HOME_MANAGER_FLAKE if your checkout is not in the default location.
         : "''${NIX_HOME_MANAGER_FLAKE:=$HOME/src/nix-home-manager}"
+        : "''${NIX_HOME_MANAGER_CONFIGS_DIR:=$HOME/src/nix-home-manager}"
 
         dev() {
           nix develop "''${NIX_HOME_MANAGER_FLAKE}#$1" "''${@:2}"
@@ -105,6 +106,7 @@ in
         #
         # The external scheduler (systemd/launchd) runs the checks. Shell only reads fast status files.
         : "''${NIX_HOME_MANAGER_FLAKE:=$HOME/src/nix-home-manager}"
+        : "''${NIX_HOME_MANAGER_CONFIGS_DIR:=$HOME/src/nix-home-manager}"
         : "''${NIXOS_CONFIGS_DIR:=$HOME/src/nixos-configs}"
 
         # Manual force check (updates the status files that Starship reads)
@@ -118,18 +120,23 @@ in
 
         # END PERSONAL-ONLY BLOCK
 
-        # local overrides
-        if [ -e ~/.config/zsh/zshrc_local ]; then
-          source ~/.config/zsh/zshrc_local
-        else
-          print "zshrc_local does not exist. Created in ~/.config/zshrc to use."
-          echo "# local overrides go here..." > ~/.config/zsh/zshrc_local
-        fi
+        # Source the user's generic local rc file *last* (after all HM code).
+        # This file is staged empty by home.activation and is 100% user-owned.
+        # The user can safely add/override anything here, including the NIX_* path
+        # environment variables.
+        [[ -f ~/.localrc ]] && source ~/.localrc
+
+        # (Temporary compatibility for anyone who already edited the old location.
+        # Will be removed in a future cleanup.)
+        [[ -f ~/.config/zsh/zshrc_local ]] && source ~/.config/zsh/zshrc_local
       '';
 
 
     };
 
+  # Seed the generic local-only rc file once (if it does not exist).
+  # The file contains only a header; the user owns it forever after.
+  # It is sourced last from the zsh initContent (see above) so the user
     # tmux
     tmux = {
       enable = true;
@@ -297,4 +304,32 @@ in
       
     };
   };
+
+  # Seed the generic local-only rc file once (if it does not exist).
+  # The file contains only a header; the user owns it forever after.
+  # It is sourced last from the zsh initContent (see above) so the user
+  # can add/override anything, including the NIX_* path variables.
+  home.activation.seedLocalRc = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    if [ ! -f "$HOME/.localrc" ]; then
+      cat > "$HOME/.localrc" << 'EOF'
+# ~/.localrc
+#
+# LOCAL-ONLY FILE — Home Manager will never overwrite or manage this file
+# after the initial creation.
+#
+# Source this file at the very end of your shell rc / login files
+# (from zsh, bash, fish, or any other shell).
+#
+# You can use it to add, remove, or override any environment variables,
+# aliases, functions, etc. that were set earlier by Home Manager,
+# including:
+#   NIX_HOME_MANAGER_CONFIGS_DIR
+#   NIXOS_CONFIGS_DIR
+#   NIX_HOME_MANAGER_FLAKE
+#
+# This file is completely safe for you to edit, delete, or put under
+# your own version control outside this repository.
+EOF
+    fi
+  '';
 }

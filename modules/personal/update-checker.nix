@@ -127,6 +127,19 @@ in
   # and handles bootstrap/load via launchctl during activation.
   # Uses the same check script. RunAtLoad + StartInterval gives "on login + hourly".
   # We use "Program" (not ProgramArguments + /bin/sh -c) for cleanliness.
+  #
+  # On some macOS versions the Home Manager launchd activation can hit
+  # "Unrecognized target specifier" or "I/O error (code 5)" if a previous
+  # generation's agent is still loaded under the same label. We do a
+  # best-effort pre-cleanup right before setupLaunchAgents.
+  home.activation.unloadStaleCheckNixReposAgent = lib.mkIf pkgs.stdenv.isDarwin (
+    lib.hm.dag.entryBefore ["setupLaunchAgents"] ''
+      echo "Cleaning up any stale com.user.check-nix-repos launch agent (best effort)..."
+      /bin/launchctl bootout "gui/$(id -u)" "com.user.check-nix-repos" 2>/dev/null || true
+      /bin/launchctl remove "com.user.check-nix-repos" 2>/dev/null || true
+    ''
+  );
+
   launchd.agents."check-nix-repos" = lib.mkIf pkgs.stdenv.isDarwin {
     enable = true;
     config = {
