@@ -1,4 +1,4 @@
-{ config, pkgs, username, dotfiles-nvim, ... }:
+{ config, pkgs, username, dotfiles-nvim, homectl, ... }:
 
 {
   imports = [
@@ -120,12 +120,18 @@
   };
 
   # Tiny convenience for the two (now three) path variables that helper scripts
-  # (the deployment script from the TODO list, custom automation, etc.) rely on.
+  # (homectl, update checkers, custom automation, etc.) rely on.
   home.packages = [
     (pkgs.writeShellScriptBin "hm-paths" ''
       echo "NIX_HOME_MANAGER_FLAKE=$NIX_HOME_MANAGER_FLAKE"
       echo "NIX_HOME_MANAGER_CONFIGS_DIR=$NIX_HOME_MANAGER_CONFIGS_DIR"
       echo "NIXOS_CONFIGS_DIR=$NIXOS_CONFIGS_DIR"
     '')
+
+    # homectl - installed into PATH after switch so it's always available for
+    # easy `homectl switch` / info / generations on this machine.
+    # Passed from the flake (homectlFor) so we don't rely on source tree paths
+    # during evaluation (avoids issues with dirty/untracked files in flakes).
+    homectl
   ];
 }

@@ -27,12 +27,28 @@ home-manager switch --flake .#osx-intel
 home-manager switch --flake .#darwin-intel
 ```
 
+> **Note:** `bin/homectl` (and any new files referenced by `builtins.readFile` or relative paths inside `flake.nix`) must be tracked by git. Run `git add bin/homectl` (and `git commit` if you want a clean tree) before the first `home-manager switch --flake` or `nix run` after introducing/changing it. Otherwise Nix's flake source filtering will produce a `*-source` tree that lacks the file, leading to "opening file '/nix/store/...-source/bin/homectl': No such file or directory" during activation (the same class of error previously seen with the update checker script).
+
 ### On Linux (Ubuntu or NixOS)
 
 ```bash
 cd ~/src/nix-home-manager
 
 home-manager switch --flake .#linux-x86
+```
+
+Or, once deployed, use the `homectl` helper (installed into PATH and also available via `nix run`):
+
+```bash
+# Auto-detects target from /etc/nixos-host-info + hostname (or uname on darwin)
+# and does the switch from the flake in NIX_HOME_MANAGER_CONFIGS_DIR.
+homectl switch
+
+# Show detected / current implemented target + flake info
+homectl info
+
+# List generations (wraps home-manager generations)
+homectl generations
 ```
 
 After a switch you may see various activation messages (font cache, bat cache rebuild, etc.). 
@@ -268,7 +284,7 @@ The previous shell-launched bg job approach has been removed. Checks happen via 
 
 ## Deferred Work (TODOs)
 
-- **NixOS host target detection for home-manager deployment**: A convenience script (e.g. `bin/hm-deploy` or similar, possibly exposed via `nix run`) that detects which NixOS flake target (e.g. `.#pleiades`, `.#iris`) was used to build the current system — preferably via an explicit marker file such as `/etc/nixos-flake-target` (or `/etc/nixos-flake`) written during the nixos-configs build, falling back to `hostname` — and then selects/maps it to the appropriate home-manager target in this flake using a clear, editable set of rules. The goal is to allow a simple one-command deploy like `./bin/hm-deploy` (or `hm-deploy` once in PATH) that does the right `home-manager switch --flake $NIX_HOME_MANAGER_FLAKE#<target>` without the user having to remember per-machine mappings. See the detailed plan notes for implementation ideas, bootstrap considerations, and the required one-liner addition on the nixos-configs side.
+- **NixOS (and Darwin) host target detection for home-manager deployment**: Implemented as `homectl` (in `bin/homectl`, exposed via flake apps/packages, installed into PATH). `homectl switch` deploys using auto-detected target from /etc/nixos-host-info (hostname first, then desktop_environment/role + OS) or uname/hostname fallback. Also provides `homectl info` and `homectl generations`. See the plan in the session notes + usage examples above. (The old generic "hm-deploy" description is superseded.)
 
 - **Personal systemd user units for repo housekeeping** (the `check-nix-repos*` services/timer): These are best-effort oneshot units. The bare `systemctl --user status` command only shows a high-level summary of the user manager and typically only surfaces *failing* units. Healthy oneshot services and their timers do not appear there. Use `systemctl --user list-units | grep check-nix`, `systemctl --user status check-nix-repos.timer`, `systemctl --user list-timers`, and `journalctl --user -u check-nix-repos*` to inspect them. The units are deliberately made to always succeed (exit 0) so they never degrade the user session.
 - **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.

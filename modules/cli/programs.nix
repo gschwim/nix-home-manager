@@ -329,6 +329,9 @@ in
 #
 # This file is completely safe for you to edit, delete, or put under
 # your own version control outside this repository.
+#
+# homectl (the deployment helper) relies on the NIX_* vars and can be used
+# for `homectl switch` (auto target from /etc/nixos-host-info + hostname etc).
 EOF
     fi
   '';
