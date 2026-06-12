@@ -240,7 +240,14 @@ EOF
             # Allow unfree packages (e.g. Dropbox, some fonts, etc.).
             # This makes standalone `home-manager switch --flake` work
             # without needing NIXPKGS_ALLOW_UNFREE=1 --impure every time.
-            config.allowUnfree = true;
+            config = {
+              allowUnfree = true;
+              # Allow packages marked broken in the final x86_64-darwin nixpkgs
+              # snapshot (e.g. arrow-cpp transitive dep pulled by pyproj/scipy/xarray
+              # etc. when including modern scientific stacks like MetPy + Siphon in
+              # the daily global Python).
+              allowBroken = true;
+            };
           };
           extraSpecialArgs = {
             inherit username;
