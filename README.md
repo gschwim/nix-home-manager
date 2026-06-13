@@ -23,7 +23,8 @@ cd ~/src/nix-home-manager
 # Daily driver (includes extras from targets/osx.nix)
 home-manager switch --flake .#osx-intel
 
-# Minimal version
+# Minimal (legacy) version - most mac laptops should use osx-intel instead
+# (darwin-intel is the bare CLI-only profile and is now deprecated for typical use)
 home-manager switch --flake .#darwin-intel
 ```
 

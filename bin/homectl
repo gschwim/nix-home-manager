@@ -27,7 +27,9 @@ Usage: homectl {switch|info|generations|target|pull} [args...]
 Detects using /etc/nixos-host-info (if present) + hostname + uname.
 Highest priority: explicit flake_target (or FLAKE_TARGET) from host-info if it matches a target.
 Then exact hostname match in homeConfigurations.
-Falls back to desktop/role + OS logic (linux-x86-desktop / linux-x86 or darwin equivalents).
+Falls back to desktop/role + OS logic (linux-x86-desktop / linux-x86).
+On darwin we now default to osx-intel (desktop apps) for typical laptops;
+darwin-intel (minimal) is legacy and only selected via explicit match or FLAKE_TARGET.
 EOF
 }
 
@@ -95,13 +97,17 @@ if [[ -n "$flake_target" ]] && has_target "$flake_target"; then
 elif has_target "$hostname"; then
   target="$hostname"
 elif $is_darwin; then
-  # On darwin, default to osx-intel (fuller, like desktop) if any desktop hint,
-  # else the minimal darwin-intel. Hostname match above takes precedence.
-  if [[ "$desktop_environment" != "none" ]]; then
-    target="osx-intel"
-  else
-    target="darwin-intel"
-  fi
+  # On darwin we default to osx-intel (the profile that pulls in desktop
+  # apps via targets/osx.nix: obsidian, signal-desktop, vscodium, wezterm,
+  # etc.). CLI-only macs are extremely rare ("who has a CLI-only mac??"),
+  # so darwin-intel (the bare modules=[]) is now considered legacy/minimal.
+  # If you really need the minimal one, use an explicit hostname match
+  # in homeConfigurations or set FLAKE_TARGET=darwin-intel in
+  # /etc/nixos-host-info. Hostname match above always takes precedence.
+  target="osx-intel"
+  # (We no longer look at desktop_environment for the darwin decision
+  # during auto-detection; it was only there to choose between the two
+  # and we're deprecating the minimal path for typical laptops.)
 elif [[ "$desktop_environment" != "none" ]]; then
   target="linux-x86-desktop"
 elif [[ "$role" == "server" ]]; then
