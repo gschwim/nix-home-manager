@@ -13,6 +13,12 @@ let
   checkNixReposScript = pkgs.writeShellScript "check-nix-repos" ''
     set -eu
 
+    # Ensure consistent cache location for status/last-check files between
+    # scheduled runs and interactive shells (hm-check-updates). This prevents
+    # the timer from writing to a different CACHE_ROOT than the one Starship
+    # looks for.
+    export XDG_CACHE_HOME="''${XDG_CACHE_HOME:-$HOME/.cache}"
+
     CHECKER="${config.home.homeDirectory}/.local/bin/check-repo-updates"
 
     if [ ! -x "$CHECKER" ]; then
@@ -83,7 +89,8 @@ in
       # Prefer nix git (and other profile tools) over system git.
       # Critical on macOS too but launchd uses its own key below.
       Environment = [
-        "PATH=${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin"
+        ''PATH=${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin''
+        ''XDG_CACHE_HOME=''${XDG_CACHE_HOME:-${config.home.homeDirectory}/.cache}''
       ];
       # These are best-effort maintenance tasks. Make sure they never
       # leave the user session in "degraded" state even if something
@@ -124,7 +131,8 @@ in
       Type = "oneshot";
       ExecStart = "${checkNixReposScript}";
       Environment = [
-        "PATH=${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin"
+        ''PATH=${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin''
+        ''XDG_CACHE_HOME=''${XDG_CACHE_HOME:-${config.home.homeDirectory}/.cache}''
       ];
       SuccessExitStatus = "0";
     };
@@ -190,6 +198,11 @@ in
       # Without this we would hit /usr/bin/git which nags for Xcode license on this machine.
       EnvironmentVariables = {
         PATH = "${config.home.profileDirectory}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+        # Force a consistent XDG_CACHE_HOME so the checker writes status files
+        # to the same location the Starship prompt (and hm-check-updates) will
+        # look for. This avoids the "timer doesn't create the folder" problem
+        # when the user's shell has a non-default XDG_CACHE_HOME.
+        XDG_CACHE_HOME = "${config.home.homeDirectory}/.cache";
       };
       # Logs for debugging (view with: cat ~/Library/Logs/check-nix-repos.*.log)
       StandardOutPath = "${config.home.homeDirectory}/Library/Logs/check-nix-repos.out.log";
