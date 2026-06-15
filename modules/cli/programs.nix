@@ -30,6 +30,16 @@ in
 
       };
       plugins = [
+        # zsh-vi-mode must be the first plugin so that its vi-mode keybindings
+        # are initialized early. Other plugins and custom bindings (in initContent)
+        # can then coexist with it.
+        # See https://github.com/jeffreytse/zsh-vi-mode
+        {
+          name = "zsh-vi-mode";
+          src = pkgs.zsh-vi-mode;
+          file = "share/zsh-vi-mode/zsh-vi-mode.plugin.zsh";
+        }
+
         # fzf-git: https://github.com/junegunn/fzf-git.sh
         {
           name = "fzf-git";
@@ -44,25 +54,46 @@ in
           };
         }
       ];
-      initContent = ''
-        # bindings for up/down history search
-        autoload -U up-line-or-beginning-search
-        autoload -U down-line-or-beginning-search
-        zle -N up-line-or-beginning-search
-        zle -N down-line-or-beginning-search
-        # These are for linux
-        bindkey "^[OA" up-line-or-beginning-search # Up
-        bindkey "^[OB" down-line-or-beginning-search # Down
-        # These are for OSX
-        bindkey "^[[A" up-line-or-beginning-search # Up
-        bindkey "^[[B" down-line-or-beginning-search # Down
 
-        # ------------------------------------------------------------------
-        # Dev shell helpers from your nix-home-manager checkout
-        # ------------------------------------------------------------------
-        # These give you short, path-free commands from *any* directory.
-        #
-        # Recommended one-time setup per machine (makes direnv + direct use even shorter):
+      initContent = lib.mkMerge [
+        (lib.mkBefore ''
+          # zsh-vi-mode options (see https://github.com/jeffreytse/zsh-vi-mode)
+          # These must be set *before* the plugin is sourced.
+          # Use 'jk' (or 'jj') as escape from insert mode. This is the classic
+          # vim-user tweak that avoids the ESC delay and feels natural.
+          ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
+
+          # ZVM_CURSOR_STYLE_ENABLED=false
+
+          # Restore the fzf-powered ctrl-R history widget in insert mode.
+          # (zsh-vi-mode takes over keymaps; this runs in zvm_after_init after
+          # viins is initialized, so we get the nice fzf popup with scrollable
+          # fuzzy matches instead of plain incremental search.)
+          #
+          # In normal mode, / and ? still work for vi-style history search.
+          zvm_after_init() {
+            bindkey -M viins '^R' fzf-history-widget
+          }
+        '')
+        ''
+          # bindings for up/down history search
+          autoload -U up-line-or-beginning-search
+          autoload -U down-line-or-beginning-search
+          zle -N up-line-or-beginning-search
+          zle -N down-line-or-beginning-search
+          # These are for linux
+          bindkey "^[OA" up-line-or-beginning-search # Up
+          bindkey "^[OB" down-line-or-beginning-search # Down
+          # These are for OSX
+          bindkey "^[[A" up-line-or-beginning-search # Up
+          bindkey "^[[B" down-line-or-beginning-search # Down
+
+          # ------------------------------------------------------------------
+          # Dev shell helpers from your nix-home-manager checkout
+          # ------------------------------------------------------------------
+          # These give you short, path-free commands from *any* directory.
+          #
+          # Recommended one-time setup per machine (makes direnv + direct use even shorter):
         #   nix registry add nix-home-manager "$HOME/src/nix-home-manager"
         #
         # Then you can use the short name "nix-home-manager" everywhere.
@@ -129,7 +160,8 @@ in
         # (Temporary compatibility for anyone who already edited the old location.
         # Will be removed in a future cleanup.)
         [[ -f ~/.config/zsh/zshrc_local ]] && source ~/.config/zsh/zshrc_local
-      '';
+      ''
+    ];
 
 
     };
