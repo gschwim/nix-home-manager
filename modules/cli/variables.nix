@@ -33,8 +33,8 @@
       command = ''
         CACHE_ROOT="''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates"
         out=""
-        [ -f "$CACHE_ROOT/nix-home-manager/status" ] && out="''${out}HM "
-        [ -f "$CACHE_ROOT/nixos-configs/status" ] && out="''${out}NIX "
+        [ -f "$CACHE_ROOT/nix-home-manager/status" ] && out="''${out}HM Update Available "
+        [ -f "$CACHE_ROOT/nixos-configs/status" ] && out="''${out}Nix Update Available "
         echo "$out"
       '';
       format = "[🔄$output]($style) ";
