@@ -37,7 +37,7 @@
         [ -f "$CACHE_ROOT/nixos-configs/status" ] && out="''${out}Nix Update Available "
         echo "$out"
       '';
-      format = "[🔄$output]($style) ";
+      format = "[❄️$output]($style) ";
       style = "yellow bold";
       when = ''test -f "''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates/nix-home-manager/status" || test -f "''${XDG_CACHE_HOME:-$HOME/.cache}/repo-updates/nixos-configs/status"'';
     };
