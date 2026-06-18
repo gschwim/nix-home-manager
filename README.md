@@ -44,6 +44,8 @@ home-manager switch --flake .#linux-x86
 nix build .#nix-home-cli-image
 docker load < result
 docker run --rm -it -v $HOME/.local/gshell-home:/home/nixuser gshell
+# On locked-down Windows Docker Business, prefer:
+# docker run --rm -it -v C:\allowed\gshell-home:/home/nixuser --user root gshell
 ```
 
 The full Dockerfile, publish flow, compose examples etc. live in the sister repo at `~/src/gshell` (starts on its own master; it pins this flake to consume the image attr).

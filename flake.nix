@@ -376,6 +376,19 @@ EOF
               enablePersonal = false;
               modules = [ ./targets/linux.nix ];
             };
+
+            # Small entrypoint that auto-activates the baked-in home-manager profile
+            # the first time the container is started against a fresh/empty volume.
+            gshellEntrypoint = pkgs.writeShellScriptBin "gshell-entrypoint" ''
+              set -euo pipefail
+
+              if [ ! -e "$HOME/.nix-profile" ]; then
+                echo "[gshell] First run with empty home - activating profile..."
+                "${dockerHome.activationPackage}/activate" || true
+              fi
+
+              exec ${pkgs.zsh}/bin/zsh "$@"
+            '';
           in
           pkgs.dockerTools.buildLayeredImage {
             name = "gshell";
@@ -388,29 +401,66 @@ EOF
                 mkdir -p $out/bin
                 ln -s ${pkgs.bashInteractive}/bin/bash $out/bin/sh
               '')
+              # The entrypoint wrapper (symlinked into /bin in extraCommands).
+              gshellEntrypoint
               # The full home-manager activation + profile for this CLI-only config.
               # Brings zsh + starship + tmux + nvim (with baked dotfiles.nvim) + all
               # home.packages (global python+poetry+metpy etc., network tools, homectl, etc.).
               dockerHome.activationPackage
             ];
+
+            # We must create the "nixuser" account that the image declares via
+            # `config.User = "nixuser"`. dockerTools does not do this automatically.
+            # Without /etc/passwd + /etc/group entries Docker will refuse to start:
+            #   "unable to find user nixuser: no matching entries in passwd file"
             extraCommands = ''
               # Skeleton dirs. Real state comes from the host bind-mount of /home/nixuser
               # (e.g. -v $HOME/.local/gshell-home:/home/nixuser).
-              mkdir -p home/nixuser/.local/{bin,state}
+              mkdir -p etc home/nixuser/.local/{bin,state} bin
               mkdir -p home/nixuser/.config
+
+              # Minimal user database so the container can actually start as nixuser.
+              cat > etc/passwd <<'EOF'
+              root:x:0:0:root:/root:/bin/sh
+              nixuser:x:1000:1000::/home/nixuser:/bin/sh
+              EOF
+
+              cat > etc/group <<'EOF'
+              root:x:0:
+              nixuser:x:1000:
+              EOF
+
+              # Stable location for the entrypoint script.
+              ln -sf ${gshellEntrypoint}/bin/gshell-entrypoint bin/gshell-entrypoint
             '';
+
             config = {
-              User = "nixuser";
+              # NOTE: We deliberately do **not** set User here.
+              #
+              # Default is root. This is required for very locked-down environments
+              # (e.g. corporate Windows + Docker Business / Docker Desktop with
+              # restricted policies, no ability to create host users, weird bind
+              # mount ownership from Windows, etc.).
+              #
+              # On normal Linux hosts you can (and should) run as the unprivileged
+              # user:
+              #   docker run --user nixuser ...
+              #   docker run --user 1000:1000 ...
+              #
+              # The nixuser account (uid 1000) is still created inside the image
+              # (see extraCommands) so --user nixuser works when the environment
+              # allows it.
               WorkingDir = "/home/nixuser";
               Env = [
                 "HOME=/home/nixuser"
-                "USER=nixuser"
+                # USER is intentionally left unset here so it reflects reality
+                # (root by default, or whatever --user the caller chose).
                 "SHELL=${pkgs.zsh}/bin/zsh"
                 "TERM=xterm-256color"
-                # Make the HM profile bins (and thus everything from modules/cli + targets/linux) visible.
+                # Make the HM profile bins visible regardless of which user runs.
                 "PATH=/home/nixuser/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin"
               ];
-              Entrypoint = [ "${pkgs.zsh}/bin/zsh" ];
+              Entrypoint = [ "/bin/gshell-entrypoint" ];
               Cmd = [ "-i" ];
             };
           };
