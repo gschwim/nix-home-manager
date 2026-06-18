@@ -239,7 +239,7 @@ EOF
         in
           p.writeShellScriptBin "homectl" homectlScript;
 
-      mkHome = { nixpkgs', home-manager', system, username, modules ? [] }:
+      mkHome = { nixpkgs', home-manager', system, username, modules ? [], enablePersonal ? true }:
         home-manager'.lib.homeManagerConfiguration {
           pkgs = import nixpkgs' {
             inherit system;
@@ -260,6 +260,7 @@ EOF
             inherit dotfiles-nvim;
             inherit llm-agents;
             homectl = homectlFor system;
+            inherit enablePersonal;
           };
           modules = modules ++ [
             ./home.nix
@@ -280,6 +281,20 @@ EOF
           home-manager' = home-manager-25-11;
           system = "x86_64-linux";
           username = "schwim";
+          modules = [
+            ./targets/linux.nix
+          ];
+        };
+
+        # Docker / portable CLI-only variant (used by ~/src/gshell sister repo).
+        # enablePersonal=false excludes the maintainer update timers/Starship bits.
+        # username "nixuser" + /home/nixuser; the real homedir is bind-mounted from host at runtime.
+        linux-x86-docker = mkHome {
+          nixpkgs' = nixpkgs-25-11;
+          home-manager' = home-manager-25-11;
+          system = "x86_64-linux";
+          username = "nixuser";
+          enablePersonal = false;
           modules = [
             ./targets/linux.nix
           ];
@@ -341,6 +356,64 @@ EOF
       packages = {
         x86_64-linux.homectl = homectlFor "x86_64-linux";
         x86_64-darwin.homectl = homectlFor "x86_64-darwin";
+
+        # Portable CLI docker image (headless profile parity for gshell portable shell).
+        # The sister repo ~/src/gshell (starts on its own master) provides the Dockerfile,
+        # publish workflow, and examples. It pins this flake and builds from the attr.
+        # The container's /home/nixuser is bind-mounted from the host at `docker run` time.
+        # Build here: nix build .#nix-home-cli-image ; docker load < result
+        x86_64-linux.nix-home-cli-image =
+          let
+            pkgs = import nixpkgs-25-11 {
+              system = "x86_64-linux";
+              config = { allowUnfree = true; allowBroken = true; };
+            };
+            dockerHome = mkHome {
+              nixpkgs' = nixpkgs-25-11;
+              home-manager' = home-manager-25-11;
+              system = "x86_64-linux";
+              username = "nixuser";
+              enablePersonal = false;
+              modules = [ ./targets/linux.nix ];
+            };
+          in
+          pkgs.dockerTools.buildLayeredImage {
+            name = "gshell";
+            tag = "latest";
+            contents = [
+              pkgs.bashInteractive
+              pkgs.coreutils
+              # Provide a working sh for any scripts.
+              (pkgs.runCommand "bin-sh" {} ''
+                mkdir -p $out/bin
+                ln -s ${pkgs.bashInteractive}/bin/bash $out/bin/sh
+              '')
+              # The full home-manager activation + profile for this CLI-only config.
+              # Brings zsh + starship + tmux + nvim (with baked dotfiles.nvim) + all
+              # home.packages (global python+poetry+metpy etc., network tools, homectl, etc.).
+              dockerHome.activationPackage
+            ];
+            extraCommands = ''
+              # Skeleton dirs. Real state comes from the host bind-mount of /home/nixuser
+              # (e.g. -v $HOME/.local/gshell-home:/home/nixuser).
+              mkdir -p home/nixuser/.local/{bin,state}
+              mkdir -p home/nixuser/.config
+            '';
+            config = {
+              User = "nixuser";
+              WorkingDir = "/home/nixuser";
+              Env = [
+                "HOME=/home/nixuser"
+                "USER=nixuser"
+                "SHELL=${pkgs.zsh}/bin/zsh"
+                "TERM=xterm-256color"
+                # Make the HM profile bins (and thus everything from modules/cli + targets/linux) visible.
+                "PATH=/home/nixuser/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin"
+              ];
+              Entrypoint = [ "${pkgs.zsh}/bin/zsh" ];
+              Cmd = [ "-i" ];
+            };
+          };
       };
 
       apps = {
