@@ -15,5 +15,8 @@
     # Linux-specific networking / system tools that are also useful on desktop
     ethtool
     iproute2   # provides the `ss` command
+
+    # Cross-platform desktop editor
+    vscodium
   ];
 }

@@ -6,7 +6,11 @@
   ];
 
   # macOS-specific desktop extras can go here if needed
-  home.packages = [
-    pkgs.hello
+  home.packages = with pkgs; [
+    # Cross-platform desktop editor
+    vscodium
+
+    # placeholder was here
+    # hello
   ];
 }
