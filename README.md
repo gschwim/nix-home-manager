@@ -38,6 +38,18 @@ cd ~/src/nix-home-manager
 home-manager switch --flake .#linux-x86
 ```
 
+**Portable Docker / gshell image (CLI-only)**: The linux-x86 profile (modules/cli + targets/linux, personal bits excluded) is also exposed as a Docker image for a ready-to-go portable shell:
+
+```
+nix build .#nix-home-cli-image
+docker load < result
+docker run --rm -it -v $HOME/.local/gshell-home:/home/nixuser gshell
+# On locked-down Windows Docker Business, prefer:
+# docker run --rm -it -v C:\allowed\gshell-home:/home/nixuser --user root gshell
+```
+
+The full Dockerfile, publish flow, compose examples etc. live in the sister repo at `~/src/gshell` (starts on its own master; it pins this flake to consume the image attr).
+
 Or, once deployed, use the `homectl` helper (installed into PATH and also available via `nix run`):
 
 ```bash
@@ -291,6 +303,7 @@ The previous shell-launched bg job approach has been removed. Checks happen via 
 - **Bootstrap story**: The old `install` + `lib.sh` scripts are deprecated. A clean, modern way to bootstrap a brand new machine from scratch is a planned future improvement.
 - **Pure Nix Neovim configuration (optional)**: The current Neovim setup sources the entire `dotfiles.nvim` repo via `xdg.configFile."nvim"`. A full conversion to declarative `programs.neovim` (plugins, treesitter grammars, etc.) is possible but would be significant effort because the config is built on lazy.nvim. This is tracked as an **optional low-priority future item**.
 - **NixOS module integration**: Support using this configuration via Home Manager as a NixOS module (instead of standalone `home-manager switch`). This would allow managing system + user configuration together with a single `nixos-rebuild switch`.
+- **Audit targets for package placement / duplication**: Inspect targets/linux-desktop.nix, targets/osx.nix, modules/desktop/common.nix, hosts/pleiades.nix etc. for packages that could live in modules/desktop/common.nix (or even modules/cli for CLI parity in the portable gshell image). Goal: keep drift low between the full desktop experience and the CLI-only docker portable shell. (See gshell sister repo + plan notes.)
 
 Python / language devshells modernization is **complete** (see `devshells/PLAN.md` and the section above).
 

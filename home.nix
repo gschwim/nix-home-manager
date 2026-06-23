@@ -1,12 +1,13 @@
-{ config, pkgs, username, dotfiles-nvim, homectl, ... }:
+{ config, pkgs, lib, username, dotfiles-nvim, homectl, enablePersonal ? true, ... }:
 
 {
   imports = [
     ./modules/cli/cli.nix
-    # Personal-only update checker (timer + script). Maintainer use only.
-    # Forks: remove this line (and the whole modules/personal/ bits if desired).
-    ./modules/personal/update-checker.nix
-  ];
+  ] ++ lib.optional enablePersonal ./modules/personal/update-checker.nix;
+  # enablePersonal (default true) brings in the maintainer-only update-checker
+  # (systemd/launchd timers + check script + personal Starship indicator).
+  # Set to false for the portable docker/CLI-only image (gshell) and for forks.
+  # Forks: you can also delete modules/personal/ entirely once this is false.
 
   # Username is supplied by the flake (see mkHome in flake.nix).
   # This makes the configuration portable across users and machines.

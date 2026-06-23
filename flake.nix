@@ -239,7 +239,7 @@ EOF
         in
           p.writeShellScriptBin "homectl" homectlScript;
 
-      mkHome = { nixpkgs', home-manager', system, username, modules ? [] }:
+      mkHome = { nixpkgs', home-manager', system, username, modules ? [], enablePersonal ? true }:
         home-manager'.lib.homeManagerConfiguration {
           pkgs = import nixpkgs' {
             inherit system;
@@ -260,6 +260,7 @@ EOF
             inherit dotfiles-nvim;
             inherit llm-agents;
             homectl = homectlFor system;
+            inherit enablePersonal;
           };
           modules = modules ++ [
             ./home.nix
@@ -280,6 +281,20 @@ EOF
           home-manager' = home-manager-25-11;
           system = "x86_64-linux";
           username = "schwim";
+          modules = [
+            ./targets/linux.nix
+          ];
+        };
+
+        # Docker / portable CLI-only variant (used by ~/src/gshell sister repo).
+        # enablePersonal=false excludes the maintainer update timers/Starship bits.
+        # username "nixuser" + /home/nixuser; the real homedir is bind-mounted from host at runtime.
+        linux-x86-docker = mkHome {
+          nixpkgs' = nixpkgs-25-11;
+          home-manager' = home-manager-25-11;
+          system = "x86_64-linux";
+          username = "nixuser";
+          enablePersonal = false;
           modules = [
             ./targets/linux.nix
           ];
@@ -341,6 +356,114 @@ EOF
       packages = {
         x86_64-linux.homectl = homectlFor "x86_64-linux";
         x86_64-darwin.homectl = homectlFor "x86_64-darwin";
+
+        # Portable CLI docker image (headless profile parity for gshell portable shell).
+        # The sister repo ~/src/gshell (starts on its own master) provides the Dockerfile,
+        # publish workflow, and examples. It pins this flake and builds from the attr.
+        # The container's /home/nixuser is bind-mounted from the host at `docker run` time.
+        # Build here: nix build .#nix-home-cli-image ; docker load < result
+        x86_64-linux.nix-home-cli-image =
+          let
+            pkgs = import nixpkgs-25-11 {
+              system = "x86_64-linux";
+              config = { allowUnfree = true; allowBroken = true; };
+            };
+            dockerHome = mkHome {
+              nixpkgs' = nixpkgs-25-11;
+              home-manager' = home-manager-25-11;
+              system = "x86_64-linux";
+              username = "nixuser";
+              enablePersonal = false;
+              modules = [ ./targets/linux.nix ];
+            };
+
+            # Small entrypoint that auto-activates the baked-in home-manager profile
+            # the first time the container is started against a fresh/empty volume.
+            gshellEntrypoint = pkgs.writeShellScriptBin "gshell-entrypoint" ''
+              set -euo pipefail
+
+              if [ ! -e "$HOME/.nix-profile" ]; then
+                echo "[gshell] First run with empty home - activating profile..."
+                "${dockerHome.activationPackage}/activate" || true
+              fi
+
+              exec ${pkgs.zsh}/bin/zsh "$@"
+            '';
+          in
+          pkgs.dockerTools.buildLayeredImage {
+            name = "gshell";
+            tag = "latest";
+            contents = [
+              pkgs.bashInteractive
+              pkgs.coreutils
+              # Provide a working sh for any scripts.
+              (pkgs.runCommand "bin-sh" {} ''
+                mkdir -p $out/bin
+                ln -s ${pkgs.bashInteractive}/bin/bash $out/bin/sh
+              '')
+              # The entrypoint wrapper (symlinked into /bin in extraCommands).
+              gshellEntrypoint
+              # The full home-manager activation + profile for this CLI-only config.
+              # Brings zsh + starship + tmux + nvim (with baked dotfiles.nvim) + all
+              # home.packages (global python+poetry+metpy etc., network tools, homectl, etc.).
+              dockerHome.activationPackage
+            ];
+
+            # We must create the "nixuser" account that the image declares via
+            # `config.User = "nixuser"`. dockerTools does not do this automatically.
+            # Without /etc/passwd + /etc/group entries Docker will refuse to start:
+            #   "unable to find user nixuser: no matching entries in passwd file"
+            extraCommands = ''
+              # Skeleton dirs. Real state comes from the host bind-mount of /home/nixuser
+              # (e.g. -v $HOME/.local/gshell-home:/home/nixuser).
+              mkdir -p etc home/nixuser/.local/{bin,state} bin
+              mkdir -p home/nixuser/.config
+
+              # Minimal user database so the container can actually start as nixuser.
+              cat > etc/passwd <<'EOF'
+              root:x:0:0:root:/root:/bin/sh
+              nixuser:x:1000:1000::/home/nixuser:/bin/sh
+              EOF
+
+              cat > etc/group <<'EOF'
+              root:x:0:
+              nixuser:x:1000:
+              EOF
+
+              # Stable location for the entrypoint script.
+              ln -sf ${gshellEntrypoint}/bin/gshell-entrypoint bin/gshell-entrypoint
+            '';
+
+            config = {
+              # NOTE: We deliberately do **not** set User here.
+              #
+              # Default is root. This is required for very locked-down environments
+              # (e.g. corporate Windows + Docker Business / Docker Desktop with
+              # restricted policies, no ability to create host users, weird bind
+              # mount ownership from Windows, etc.).
+              #
+              # On normal Linux hosts you can (and should) run as the unprivileged
+              # user:
+              #   docker run --user nixuser ...
+              #   docker run --user 1000:1000 ...
+              #
+              # The nixuser account (uid 1000) is still created inside the image
+              # (see extraCommands) so --user nixuser works when the environment
+              # allows it.
+              WorkingDir = "/home/nixuser";
+              Env = [
+                "HOME=/home/nixuser"
+                # USER is intentionally left unset here so it reflects reality
+                # (root by default, or whatever --user the caller chose).
+                "SHELL=${pkgs.zsh}/bin/zsh"
+                "TERM=xterm-256color"
+                # Make the HM profile bins visible regardless of which user runs.
+                "PATH=/home/nixuser/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin"
+              ];
+              Entrypoint = [ "/bin/gshell-entrypoint" ];
+              Cmd = [ "-i" ];
+            };
+          };
       };
 
       apps = {

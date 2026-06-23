@@ -62,6 +62,7 @@
       in
       with ps; [
         jupyterlab
+        jupyterlab-vim
         polars
         matplotlib
         numpy
